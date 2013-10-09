@@ -6,7 +6,8 @@
     "express": "3.x",
     "mysql": "x",
     "async": "x",
-    "node-uuid":"x"
+    "node-uuid":"x",
+	"validator":"x"
   }
 }
 

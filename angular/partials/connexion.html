@@ -1,0 +1,35 @@
+<header class="topBar bois">
+	<a href="#/"><i class="iconHome"></i></a>
+	<h3>Connexion</h3>
+</header>
+<div ng-hide="hiddenMessage" class="errorMessage">
+	{{errorMessage}}
+</div>
+<section id="connexion">
+	<header id="grand_logo">
+		<img src="img/logo.png">
+	</header>
+	<article>
+		<div>
+			<div class="inputWithAddon">
+				<label for="login" class="addOn">
+					<i class="iconLogin"></i>
+				</label>
+				<input type="text" name="login" id="login" placeholder="login" ng-model="login"/>
+			</div>
+			<div class="inputWithAddon">
+				<label for="password" class="addOn">
+					<i class="iconLock"></i>
+				</label>
+				<input type="password" name="password" id="password" placeholder="password"  ng-model="password"/>
+			</div>
+		</div>
+		<div>
+			<button class="largeButton bois" ng-click="connexionClick()">Connexion</button>
+		</div>
+	</article>
+
+	<article>
+		<a class="largeButton bois" href="#/inscription" >Inscription</a>
+	</article>
+</section>
