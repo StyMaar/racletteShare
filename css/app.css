@@ -76,21 +76,28 @@ input{
 */
 
 .inputWithAddon {
-	display: -webkit-flex;
-	display: flex;
 	margin:10px 0px;
 }
 
+/*
+	Dans le mode compatible safari, plutôt que de mettre l'addon et l'input d'un à coté de l'autre, je me l'addon par dessus l'input, et je met juste suffisement de padding dans l'input pour que ça ne se voie pas ... (c'est dégueux je sais ... Mais safari a qu'a être flex-compliant)
+*/
+
 .inputWithAddon input {
-	-webkit-flex:1;
-	flex: 1;
 	margin:0px; /* un reset du comportement par défaut de chrome ...*/
-    -webkit-border-radius: 0px 4px 4px 0px;
-    -moz-border-radius: 0px 4px 4px 0px;
-    border-radius: 0px 4px 4px 0px;
+	display:inline-block;
+	-moz-box-sizing:border-box;
+	-webkit-box-sizing:border-box;
+	box-sizing:border-box;
+	padding-left:60px;
+	position:relative;
+	left:0px;
+	width:100%;
 }
 
 .addOn{
+    position:absolute;
+    z-index:1;
 	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
     -ms-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
     box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
