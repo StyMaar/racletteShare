@@ -227,6 +227,10 @@ section {
 	margin: 0px;
 }
 
+.topBar a + .topBar h3{ /* un selecteur d'adjacence : cible le h3 qui suit immédiatement un a */
+	margin-right:44px; /* Pour compenser le liens vers la page d'accueil*/
+}
+
 .topBar a {
 	float:left;
 }
