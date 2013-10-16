@@ -52,7 +52,7 @@ utils.error = function(res,err){
 // fonction qui sert à évaluer les erreurs
 // return true s'il n'y a pas d'erreur
 // mais s'il y a une erreur, elle envoie une réponse http avec le bon code d'erreur et retourne false
-utils.checkError = function(res,err){
+utils.checkError = function(err,res){
 	switch(err){
 		case null :
 		case "" :
@@ -115,16 +115,16 @@ app.get("/users/:login/:password",function(req,res){
 	var login = req.params.login;
 	var password = req.params.password;
 	try {
-		check(login).len(3,64);
+		check(login).len(6, 64).isEmail();
 		check(password).len(3,64);
 	} catch (e){
 		utils.badRequest(res);
 		return;
 	}
 	//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
-	async.parallel([doLogin(login,password)],function(err,id){
-		if(utils.checkError(res,err)){
-			req.session.user_uuid=id;
+	async.parallel([doLogin(login,password)],function(err,result){
+		if(utils.checkError(err,res)){
+			req.session.user_uuid=result[0];
 			utils.ok(req,res);				
 		}
 	});
@@ -138,7 +138,7 @@ function doLogin(login, password){
 				callback(err);
 				return;
 			}
-			connection.query('SELECT uuid as id FROM user WHERE name = ? AND password = SHA2(?, 224)', [login,password], function(err, rows) {
+			connection.query('SELECT login as id FROM user WHERE login = ? AND password = SHA2(?, 224)', [login,password], function(err, rows) {
 				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
 				var id = null;
 				if(!err){
@@ -154,5 +154,52 @@ function doLogin(login, password){
 	}
 }
 
+/*
+	Inscription
+*/
 
-app.listen(process.argv[2]||7777); //si jamais un numéro de port est passé en paramètre à l'execution du script node, alors on utilisera ce port là, sinon on utilise le port 7777 par défaut
+app.post("/users",function(req,res){
+	//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
+	try {
+		check(req.body.login).len(6, 64).isEmail();
+		check(req.body.name).len(3,64);
+		check(req.body.password).len(3,64);
+		if(req.body.city){ //si une ville est renseignée, on s'assure que c'est bien une ville
+			check(req.body.city).len(2,64);
+		}
+		if(req.body.tel){//si un numéro de tel est renseigné, on s'assure que c'est bien un numéro de tel
+			check(req.body.tel).regex(/^[0-9\- .+]{10,17}$/);	
+		}
+	} catch (e){
+		utils.badRequest(res);
+		return;
+	}
+	async.parallel([createUser(req.body)],function(err,results){
+		if(utils.checkError(err,res)){
+			req.session.user_uuid=results[0];
+			utils.created(req,res);
+		}
+	});
+});
+
+function createUser(user){
+	return function(callback){
+		pool.getConnection(function(err,connection){
+			//on s'assure que l'appel d'un connection dans le pool se passe bien.
+			if(err){
+				callback(err);
+				return;
+			}
+			connection.query('INSERT INTO user (login, name, password ,city, tel) \
+			VALUES (?,?,SHA2(?, 224),?)', [user.login, user.name, user.password, user.city, user.tel], function(err, results) {
+				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
+				err = utils.checkUpdateErr(err,results);
+				callback(err,uuid);
+			});
+		});
+	}
+}
+
+var usedPort = process.argv[2]||7777; //si jamais un numéro de port est passé en paramètre à l'execution du script node, alors on utilisera ce port là, sinon on utilise le port 7777 par défaut
+app.listen(usedPort);
+console.log("Serveur à l'écoute sur le port "+usedPort);

@@ -1,0 +1,49 @@
+<header class="topBar bois">
+	<a href="#/"><i class="iconHome"></i></a>
+	<h3>Inscription</h3>
+</header>
+<div ng-hide="hiddenMessage" class="errorMessage" ng-repeat="errorMessage in errorMessages">
+	{{errorMessage}}
+</div>
+<section id="inscription">
+	<header id="grand_logo">
+		<img src="img/logo.png">
+	</header>
+	<article>
+		<div>
+			<div class="inputWithAddon">
+				<label for="login" class="addOn">
+					<i class="iconLogin"></i>
+				</label>
+				<input type="text" name="login" id="login" placeholder="entrer votre adresse mail" ng-model="login"/>
+			</div>
+			<div class="inputWithAddon">
+				<label for="name" class="addOn">
+					<i class="iconGroup"></i>
+				</label>
+				<input type="text" name="name" id="name" placeholder="votre nom dans l'application" ng-model="name"/>
+			</div>
+			<div class="inputWithAddon">
+				<label for="password" class="addOn">
+					<i class="iconLock"></i>
+				</label>
+				<input type="password" name="password" id="password" placeholder="password"  ng-model="password"/>
+			</div>
+			<div class="inputWithAddon">
+				<label for="ville" class="addOn">
+					<i class="iconPosition"></i>
+				</label>
+				<input type="text" name="ville" id="ville" placeholder="votre ville" ng-model="ville"/>
+			</div>
+			<div class="inputWithAddon">
+				<label for="tel" class="addOn">
+					<i class="iconMessage"></i>
+				</label>
+				<input type="text" name="tel" id="tel" placeholder="votre numéro de téléphone" ng-model="tel"/>
+			</div>
+		</div>
+		<div>
+			<button class="largeButton bois" ng-click="inscriptionClick()">S'inscrire</button>
+		</div>
+	</article>
+</section>

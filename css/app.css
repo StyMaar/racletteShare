@@ -84,6 +84,7 @@ input{
 .inputWithAddon input {
 	-webkit-flex:1;
 	flex: 1;
+	margin:0px; /* un reset du comportement par défaut de chrome ...*/
     -webkit-border-radius: 0px 4px 4px 0px;
     -moz-border-radius: 0px 4px 4px 0px;
     border-radius: 0px 4px 4px 0px;
@@ -113,6 +114,7 @@ input{
 	margin-bottom: 20px;
 	color: rgb(214, 5, 0);
 	background-color: rgb(249, 180, 178);
+	font-size:14px;
 }
 
 /*
@@ -137,6 +139,18 @@ input{
 
 .iconLogin {
 	background-image:url(../img/login.png);
+}
+
+.iconPosition {
+	background-image:url(../img/position.png);
+}
+
+.iconGroup {
+	background-image:url(../img/groupe.png);
+}
+
+.iconMessage {
+	background-image:url(../img/message.png);
 }
 
 .iconLock {
