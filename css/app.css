@@ -117,6 +117,9 @@ input{
 	font-size:14px;
 }
 
+/*
+	Affichage un peut différent si les messages d'erreur sont dans une liste : ie, qu'il peut y avoir plusieurs erreurs simultanées sur la même page.
+*/
 li.errorMessage {
 	padding: 5px;
 	margin-bottom: 0px;
