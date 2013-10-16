@@ -2,9 +2,11 @@
 	<a href="#/"><i class="iconHome"></i></a>
 	<h3>Inscription</h3>
 </header>
-<div ng-hide="hiddenMessage" class="errorMessage" ng-repeat="errorMessage in errorMessages">
-	{{errorMessage}}
-</div>
+<ul class="unstyled">
+	<li ng-hide="hiddenMessage" class="errorMessage" ng-repeat="errorMessage in errorMessages">
+		{{errorMessage}}
+	</li>
+</ul>
 <section id="inscription">
 	<header id="grand_logo">
 		<img src="img/logo.png">
@@ -33,13 +35,13 @@
 				<label for="ville" class="addOn">
 					<i class="iconPosition"></i>
 				</label>
-				<input type="text" name="ville" id="ville" placeholder="votre ville" ng-model="ville"/>
+				<input type="text" name="ville" id="ville" placeholder="votre ville (facultatif)" ng-model="ville"/>
 			</div>
 			<div class="inputWithAddon">
 				<label for="tel" class="addOn">
 					<i class="iconMessage"></i>
 				</label>
-				<input type="text" name="tel" id="tel" placeholder="votre numéro de téléphone" ng-model="tel"/>
+				<input type="text" name="tel" id="tel" placeholder="votre numéro de téléphone (facultatif)" ng-model="tel"/>
 			</div>
 		</div>
 		<div>

@@ -191,7 +191,7 @@ function createUser(user){
 				return;
 			}
 			connection.query('INSERT INTO user (login, name, password ,city, tel) \
-			VALUES (?,?,SHA2(?, 224),?)', [user.login, user.name, user.password, user.city, user.tel], function(err, results) {
+			VALUES (?,?,SHA2(?, 224),?,?)', [user.login, user.name, user.password, user.city, user.tel], function(err, results) {
 				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
 				err = utils.checkUpdateErr(err,results);
 				callback(err,uuid);

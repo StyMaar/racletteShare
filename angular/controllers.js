@@ -5,7 +5,7 @@
 angular.module('controllers', ['racletteModules']).
   controller('connexionCtrl', ['$scope','$http','$location',"formValidation", function($scope,$http,$location,formValidation) {
 	$scope.hiddenMessage = true;
-	$scope.errorMessage = [];
+	$scope.errorMessages = [];
 	$scope.connexionClick = function(){
 		/*
 			On contrôle le login (doit être un email), le mot de passe (3-64 char de long)
@@ -23,7 +23,7 @@ angular.module('controllers', ['racletteModules']).
 		}
 		if(isItOk){
 			$scope.hiddenMessage = true;
-			$scope.errorMessage = [];
+			$scope.errorMessages = [];
 		}else{
 			return;
 		}
@@ -32,11 +32,11 @@ angular.module('controllers', ['racletteModules']).
 			$location.replace();
 		}).error(function(data, status, headers) {
 			$scope.hiddenMessage = false;
-			$scope.errorMessage = "Connexion impossible, veuillez réessayer.";
+			$scope.errorMessages = "Connexion impossible, veuillez réessayer.";
 		});
 	}
   }]).
-  controller('inscriptionCtrl', ['$scope','$http','$location',"formValidation","errorMessages", function($scope,$http,$location,formValidation,errorMessages) {
+  controller('inscriptionCtrl', ['$scope','$http','$location',"formValidation", function($scope,$http,$location,formValidation) {
 	$scope.hiddenMessage = true;
 	$scope.errorMessages = [];
 	$scope.inscriptionClick = function(){
@@ -44,22 +44,27 @@ angular.module('controllers', ['racletteModules']).
 			On contrôle le login (doit être un email), le mot de passe (3-64 char de long) et le nom d'utilisateur (3-64 char de long)
 			La ville et le téléphone sont facultatifs
 		*/
+		$scope.errorMessages = [];
 		var isItOk = true;
 		if(!formValidation.checkLogin($scope.login)){
 			$scope.hiddenMessage = false;
 			$scope.errorMessages.push("Votre email doit être un email valide");
 			isItOk = false;
 		}
+		console.log(!formValidation.checkLogin($scope.login));
+		console.log(!formValidation.checkLength($scope.password));
 		if(!formValidation.checkLength($scope.password)){
 			$scope.hiddenMessage = false;
-			$scope.errorMessages.push("le mot de passe doit faire au moins 3 caractères.");
+			$scope.errorMessages.push("Le mot de passe doit faire au moins 3 caractères.");
 			isItOk = false;
 		}
+		console.log(!formValidation.checkLength($scope.name));
 		if(!formValidation.checkLength($scope.name)){
 			$scope.hiddenMessage = false;
 			$scope.errorMessages.push("Votre nom d'utilisateur doit faire au moins 3 caractères.");	
 			isItOk = false;	
 		}
+		console.log(!formValidation.checkTel($scope.tel));
 		if($scope.tel && !formValidation.checkTel($scope.tel)){ //si un numéro de tel est renseigné, on s'assure que c'est bien un numéro de tel
 			$scope.hiddenMessage = false;
 			$scope.errorMessages.push("Si vous souhaitez donner votre numéro de téléphone, merci d'en donner un valide");
@@ -67,7 +72,7 @@ angular.module('controllers', ['racletteModules']).
 		}
 		if(isItOk){
 			$scope.hiddenMessage = true;
-			$scope.errorMessage = [];
+			$scope.errorMessages = [];
 		}else{
 			return;
 		}
@@ -83,7 +88,7 @@ angular.module('controllers', ['racletteModules']).
 			$location.replace();
 		}).error(function(data, status, headers) {
 			$scope.hiddenMessage = false;
-			$scope.errorMessage = "Connexion impossible, veuillez réessayer.";
+			$scope.errorMessages.push("Connexion impossible, veuillez réessayer.");
 		});
 	}
   }]);

@@ -10,7 +10,7 @@ angular.module('racletteModules', [])
 			return mailReg.test(login);
 		}
 		fV.checkLength = function(string){
-			return lengthReg.test(string)
+			return string && lengthReg.test(string);
 		}
 		fV.checkTel = function(tel){
 			return telReg.test(tel);
