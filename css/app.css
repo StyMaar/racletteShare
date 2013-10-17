@@ -55,7 +55,7 @@ select, textarea, input[type="text"], input[type="password"]{
     box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
     color: #555;
     -webkit-border-radius: 4px;
-    -moz-border-radius: 4px;
+    -ms-border-radius: 4px;
     border-radius: 4px;
 }
 
@@ -66,6 +66,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus{
 }
 
 input{
+	margin:0px; /* reset le comportement par défaut de webkit/chrome */
     font-size: 20px;
     padding: 4px 5px;
     color: #444;
@@ -84,7 +85,6 @@ input{
 */
 
 .inputWithAddon input {
-	margin:0px; /* un reset du comportement par défaut de chrome ...*/
 	display:inline-block;
 	-moz-box-sizing:border-box;
 	-webkit-box-sizing:border-box;
@@ -101,15 +101,34 @@ input{
 	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
     -ms-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
     box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-	font-size: 20px;
 	-webkit-border-radius: 4px 0px 0px 4px;
 	-ms-border-radius: 4px 0px 0px 4px;
 	border-radius: 4px 0px 0px 4px;
-	padding: 4px 5px;
+	padding: 2px 5px;
 	font-weight: normal;
 	text-shadow: 0 1px 0 #ffffff;
 	background-color: #eeeeee;
 	color: rgb(51,51,51);
+}
+
+/*
+	Des badges à la bootstrap
+*/
+
+.badge{
+    display: inline-block;
+    min-width: 10px;
+    padding: 3px 7px;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1;
+    color: rgb(253, 23, 0);
+    background-color: rgb(153, 153, 153);
+    border-radius: 10px 10px 10px 10px;
+}
+
+.badge:empty { /*On n'affiche pas le badge s'il n'y a rien dedans*/
+    display: none;
 }
 
 /*
@@ -145,12 +164,12 @@ li.errorMessage:last-child {
 
 [class^="icon"] {
 	display: inline-block;
-    vertical-align: text-top;
 	width: 14px;
 	height: 14px;
 	margin-top: 1px;
 	background-repeat: no-repeat;
 	background-size: 100% 100%;
+	background-position: right top;
 }
 
 .addOn [class^="icon"] {
@@ -161,6 +180,14 @@ li.errorMessage:last-child {
 
 .iconLogin {
 	background-image:url(../img/login.png);
+}
+
+.iconSearch {
+	background-image:url(../img/search.png);
+}
+
+.iconExit {
+	background-image:url(../img/exit.png);
 }
 
 .iconPosition {
@@ -189,10 +216,10 @@ li.errorMessage:last-child {
 
 body {
 	margin:0px;
-	background-image: url("../img/background.png");
+	background-image: url("../img/bckgrnd.png");
 	background-size: 100% auto;
-	background-color:rgb(85, 73, 73);
-	background-repeat: no-repeat;
+	background-color:rgb(235, 223, 213);
+	background-repeat: repeat-y;
 	font-size:1.2em;
 }
 
@@ -262,4 +289,99 @@ section {
 
 article:last-child{
 	margin-top:20px;
+}
+
+/*
+	spécificité de la page de dashboard
+*/
+
+#dashboardHeader {
+	height:74px;
+}
+
+#dashboardHeader #profileSummary {
+	display:block;
+	position:absolute;
+	top:10px;
+	left:10px;
+}
+
+#dashboardHeader #profileSummary img {
+	width:54px;
+	float:left;
+	display:inline-block;
+}
+
+#dashboardHeader #profileSummary span {
+	font-size:0.8em;
+	display:inline-block;
+	position:relative;
+	top:12px;
+	left:5px;
+}
+
+#dashboardHeader #deconnexionButton {
+	display:block;
+	cursor:pointer;
+	position:absolute;
+	top:28px;
+	right:15px;
+}
+
+#dashboardHeader #connexionButton {
+	position:absolute;
+	cursor:pointer;
+	display:block;
+	font-size:0.8em;
+	top:22px;
+	left:10px;
+}
+
+#dashboard .search {
+	position:relative;
+}
+
+#dashboard .search {
+	margin-bottom:10px;
+}
+
+#dashboard .search input {
+	width:100%;
+	padding-right:132px;
+	-moz-box-sizing:border-box;
+	-webkit-box-sizing:border-box;
+	box-sizing:border-box;
+}
+
+#dashboard .search a {
+	position:absolute;
+	right:0px;
+	top:0px;
+	padding:4px 5px 5px 5px;
+	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+    -ms-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+	-webkit-border-radius: 0px 4px 4px 0px;
+	-ms-border-radius: 0px 4px 4px 0px;
+	border-radius: 0px 4px 4px 0px;
+}
+
+#dashboard .search a.bois:hover {
+	background-image: url(../img/bois-sombre.png);
+	text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);
+}
+
+@media (max-width:600px){
+	#dashboard .search a.bois span {
+		display:none;
+	}
+
+	#dashboard .search input {
+		padding-right:31px;
+	}
+
+}
+
+#dashboard #pret a:last-child {
+	margin-top:10px;
 }

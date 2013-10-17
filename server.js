@@ -73,10 +73,10 @@ utils.checkError = function(err,res){
 	return !err;
 }
 
-utils.ok = function(req,res){
+utils.ok = function(res){
 	res.send(200);
 }
-utils.created = function(req,res){
+utils.created = function(res){
 	res.send(201);
 }
 
@@ -110,11 +110,15 @@ app.get('/', function (req, res) {
 
 //traitement des images de profil 
 app.get('/users/pictures/my', function (req, res) {
-	res.sendfile(__dirname + 'pictures/avatar2.png');
+	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette image
+		res.sendfile(__dirname + '/pictures/avatar2.png');
+	}else{
+		utils.forbiden(res);
+	}
 });
 
 app.get('/users/pictures/:userId', function (req, res) {
-	res.sendfile(__dirname + 'pictures/avatar1.png');
+	res.sendfile(__dirname + '/pictures/avatar1.png');
 });
 
 /*
@@ -133,8 +137,8 @@ app.get("/users/:login/:password",function(req,res){
 	//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
 	async.parallel([doLogin(login,password)],function(err,result){
 		if(utils.checkError(err,res)){
-			req.session.user_uuid=result[0];
-			utils.ok(req,res);				
+			req.session.user_id=result[0];
+			utils.ok(res);				
 		}
 	});
 });
@@ -147,7 +151,7 @@ function doLogin(login, password){
 				callback(err);
 				return;
 			}
-			connection.query('SELECT uuid as id FROM user WHERE login = ? AND password = SHA2(?, 224)', [login,password], function(err, rows) {
+			connection.query('SELECT id FROM user WHERE login = ? AND password = SHA2(?, 224)', [login,password], function(err, rows) {
 				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
 				var id = null;
 				if(!err){
@@ -185,14 +189,14 @@ app.post("/users",function(req,res){
 	}
 	async.parallel([createUser(req.body)],function(err,results){
 		if(utils.checkError(err,res)){
-			req.session.user_uuid=results[0];
-			utils.created(req,res);
+			req.session.user_id=results[0];
+			utils.created(res);
 		}
 	});
 });
 
 function createUser(user){
-	var uuid = utils.uuid();
+	var id = utils.uuid();
 	return function(callback){
 		pool.getConnection(function(err,connection){
 			//on s'assure que l'appel d'un connection dans le pool se passe bien.
@@ -200,15 +204,68 @@ function createUser(user){
 				callback(err);
 				return;
 			}
-			connection.query('INSERT INTO user (uuid, login, name, password ,city, tel) \
-			VALUES (?, ?,?,SHA2(?, 224),?,?)', [uuid, user.login, user.name, user.password, user.city, user.tel], function(err, results) {
+			connection.query('INSERT INTO user (id, login, name, password ,city, tel) \
+			VALUES (?,?,?,SHA2(?, 224),?,?)', [id, user.login, user.name, user.password, user.city, user.tel], function(err, results) {
 				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
 				err = utils.checkUpdateErr(err,results);
-				callback(err,uuid);
+				callback(err,id);
 			});
 		});
 	}
 }
+
+/*
+	Dashboard
+*/
+
+app.get("/users/my",function(req,res){
+	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
+		//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
+		async.parallel([getUserInfo(req.session.user_id)],function(err,results){
+			if(utils.checkError(err,res)){
+				res.contentType('application/json');
+				res.send(JSON.stringify(results[0])); 
+			}
+		});
+	}else{
+		utils.forbiden(res);
+	}
+});
+
+/*
+  getUserInfo : récupère les informations de base sur un utilisateur, elle est utilisée un grand nombre de fois, pas seulement pour le dashboard
+  fonction faite pour être appelée avec async
+*/
+
+function getUserInfo(userId){
+	return function(callback){ 
+		pool.getConnection(function(err,connection){
+			connection.query('SELECT name, id, city FROM user WHERE id=?', [userId], function(err, rows) {
+				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
+				var userData = null;
+				if(!err){
+					if(rows && rows.length!=0){
+						userData = rows[0];
+					}else{
+						err = "notFound";         
+					}
+				}
+				callback(err,userData);
+			});
+		});
+	}
+}
+
+
+app.get("/deconnexion",function(req,res){
+	if(req.session.user_id){
+		req.session.user_id=null;
+		utils.ok(res);
+	}else{
+		utils.forbiden(res);
+	}
+});
+
 
 var usedPort = process.argv[2]||7777; //si jamais un numéro de port est passé en paramètre à l'execution du script node, alors on utilisera ce port là, sinon on utilise le port 7777 par défaut
 app.listen(usedPort);

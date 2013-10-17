@@ -1,0 +1,38 @@
+<header class="bois" id="dashboardHeader">
+	<a href="#/connexion" id="connexionButton" ng-hide="connected">Connectez-vous !</a>
+	<a id="profileSummary" ng-hide="!connected" href="#/users/my">
+		<img ng-src="users/pictures/my" alt="ma photo"/>
+		<span>{{name}}</span>
+	</a>
+	<span ng-hide="!connected" id="deconnexionButton" ng-click="deconnexionClick()"><i class="iconExit"></i></span>
+</header>
+<section id="dashboard">
+	<header id="grand_logo">
+			<img src="img/logo.png">
+	</header>
+
+	<article id="pret">
+		<h3>Je prête</h3>
+		<a href="#/nouvel_objet" class="largeButton bois">Nouveau prêt</a>
+		<a href="#/demandes/distance/1" class="largeButton bois">Que cherchent mes voisins ?</a>
+	</article>
+	<article id="emprunt">
+		<h3>J'emprunte</h3>
+		<div class="search">
+			<input type="text" placeholder="Par mots clés" ng-model="searchParam1">
+			<a href="#/items/keyword/{{searchParam1}}" class="bois">
+				<i class="iconSearch"></i>
+				<span> Rechercher </span>
+			</a>
+		</div>
+		<div class="search">
+			<input type="text" placeholder="Par catégorie" ng-model="searchParam2">
+			<a href="#/items/category/{{searchParam2}}" class="bois">
+				<i class="iconSearch"></i>
+				<span> Rechercher </span>
+			</a>
+		</div>
+		<h5>Vous n'avez pas trouvé ce que vous cherchez ?</h5>
+		<a href="#/nouvelle_demande" class="largeButton bois">Nouvelle demande</a>
+	</article>
+</section>

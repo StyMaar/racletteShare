@@ -10,7 +10,7 @@ angular.module('racletteModules', [])
 			return mailReg.test(login);
 		}
 		fV.checkLength = function(string){
-			return string && lengthReg.test(string);
+			return string && lengthReg.test(string); // pour une raison mystérieuse, cette regex appliquée à null renvoyait true ...
 		}
 		fV.checkTel = function(tel){
 			return telReg.test(tel);
