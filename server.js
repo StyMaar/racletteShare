@@ -108,6 +108,15 @@ app.get('/', function (req, res) {
 });
 
 
+//traitement des images de profil 
+app.get('/users/pictures/my', function (req, res) {
+	res.sendfile(__dirname + 'pictures/avatar2.png');
+});
+
+app.get('/users/pictures/:userId', function (req, res) {
+	res.sendfile(__dirname + 'pictures/avatar1.png');
+});
+
 /*
 	Connexion
 */
@@ -138,7 +147,7 @@ function doLogin(login, password){
 				callback(err);
 				return;
 			}
-			connection.query('SELECT login as id FROM user WHERE login = ? AND password = SHA2(?, 224)', [login,password], function(err, rows) {
+			connection.query('SELECT uuid as id FROM user WHERE login = ? AND password = SHA2(?, 224)', [login,password], function(err, rows) {
 				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
 				var id = null;
 				if(!err){
@@ -183,6 +192,7 @@ app.post("/users",function(req,res){
 });
 
 function createUser(user){
+	var uuid = utils.uuid();
 	return function(callback){
 		pool.getConnection(function(err,connection){
 			//on s'assure que l'appel d'un connection dans le pool se passe bien.
@@ -190,8 +200,8 @@ function createUser(user){
 				callback(err);
 				return;
 			}
-			connection.query('INSERT INTO user (login, name, password ,city, tel) \
-			VALUES (?,?,SHA2(?, 224),?,?)', [user.login, user.name, user.password, user.city, user.tel], function(err, results) {
+			connection.query('INSERT INTO user (uuid, login, name, password ,city, tel) \
+			VALUES (?, ?,?,SHA2(?, 224),?,?)', [uuid, user.login, user.name, user.password, user.city, user.tel], function(err, results) {
 				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
 				err = utils.checkUpdateErr(err,results);
 				callback(err,uuid);
