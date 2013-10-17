@@ -385,3 +385,27 @@ article:last-child{
 #dashboard #pret a:last-child {
 	margin-top:10px;
 }
+
+/*
+	spécificité de la page de mon_profil
+*/
+
+#mon_profil header {
+	text-align:center;
+}
+
+#mon_profil header img {
+	margin-top:5px;
+}
+
+#mon_profil header h5{
+	margin:5px 0px;
+}
+
+#mon_profil header h6 {
+	margin-top:0px;
+}
+
+#mon_profil .largeButton {
+	margin-bottom:10px;
+}

@@ -103,4 +103,10 @@ angular.module('controllers', ['racletteModules']).
 				$location.replace();
 			});
 		}
+	}]).
+	controller('mon_profilCtrl', ['$scope','$http','$location', function($scope,$http,$location) {
+		$http.get('users/my').success(function(data) {
+			$scope.name = data.name;
+			$scope.city = data.city;
+		})
 	}]);
