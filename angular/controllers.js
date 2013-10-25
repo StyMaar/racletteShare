@@ -3,7 +3,7 @@
 /* Controllers */
 
 angular.module('controllers', ['racletteModules']).
-	controller('connexionCtrl', ['$scope','$http','$location',"formValidation", function($scope,$http,$location,formValidation) {
+	controller('connexionCtrl', ['$scope','$http','$location',"formValidation",'LoginManager', function($scope,$http,$location,formValidation,LoginManager) {
 		$scope.hiddenMessage = true;
 		$scope.errorMessages = [];
 		$scope.connexionClick = function(){
@@ -29,6 +29,7 @@ angular.module('controllers', ['racletteModules']).
 				return;
 			}
 			$http.get('users/'+$scope.login+'/'+$scope.password).success(function() {
+				LoginManager.connect();
 				$location.path("/");
 				$location.replace();
 			}).error(function(data, status, headers) {
@@ -37,7 +38,7 @@ angular.module('controllers', ['racletteModules']).
 			});
 		}
 	}]).
-	controller('inscriptionCtrl', ['$scope','$http','$location',"formValidation", function($scope,$http,$location,formValidation) {
+	controller('inscriptionCtrl', ['$scope','$http','$location',"formValidation",'LoginManager', function($scope,$http,$location,formValidation,LoginManager) {
 		$scope.hiddenMessage = true;
 		$scope.errorMessages = [];
 		$scope.inscriptionClick = function(){
@@ -81,6 +82,7 @@ angular.module('controllers', ['racletteModules']).
 				tel:$scope.tel
 			}
 			$http.post('users/',postData).success(function() {
+				LoginManager.connect();
 				$location.path("/");
 				$location.replace();
 			}).error(function(data, status, headers) {
@@ -89,24 +91,127 @@ angular.module('controllers', ['racletteModules']).
 			});
 		}
 	}]).
-	controller('dashboardCtrl', ['$scope','$http','$location', function($scope,$http,$location) {
+	controller('dashboardCtrl', ['$scope','$http','$location','LoginManager', function($scope,$http,$location,LoginManager) {
 		$scope.connected = false;
-		$http.get('users/my').success(function(data) {
-			$scope.name = data.name;
+		LoginManager.checkLogin(function(){
 			$scope.connected = true;
-		}).error(function(){
-			$scope.connected = false;
-		});
-		$scope.deconnexionClick = function(){
-			$http.get('/deconnexion').success(function() {
-				$location.path("/aurevoir");
-				$location.replace();
+			$http.get('users/my').success(function(data) {
+				$scope.name = data.name;
 			});
-		}
+			$scope.deconnexionClick = LoginManager.disconnect;
+		},function(){
+			//ce qu'on doit faire si jamais on n'est pas connecté
+		});
+		$http.get('/categories').success(function(data) {
+			$scope.categories = data;
+		});
 	}]).
-	controller('mon_profilCtrl', ['$scope','$http','$location', function($scope,$http,$location) {
+	controller('mon_profilCtrl', ['$scope','$http','$location','LoginManager', function($scope,$http,$location,LoginManager) {
 		$http.get('users/my').success(function(data) {
 			$scope.name = data.name;
 			$scope.city = data.city;
 		})
+	}]).
+	controller('mes_objetsCtrl', ['$scope','$http','$location','LoginManager', function($scope,$http,$location,LoginManager) {
+		$scope.hiddenMessage = true;
+		$scope.errorMessage = "";
+		LoginManager.checkLogin(function(){
+			$http.get('items/my').success(function(data) {
+				$scope.item_list=data;
+				if(!data || data.length==0){
+					$scope.hiddenMessage = false;
+					$scope.errorMessage = "Vous ne partagez actuellement aucun objet. N'hésitez pas à partager vos objets avec la communauté racletteShare";
+				} 
+			});
+			$scope.clickDelete = function(itemId,index){
+				$http.delete('items/detail/'+itemId).success(function(data){
+					$scope.item_list.splice(index,1);
+					$scope.hiddenMessage = true;
+				}).error(function(data, status, headers) {
+					$scope.hiddenMessage = false;
+					$scope.errorMessage = "Echec de la suppression de l'élement. Veuillez réessayer."
+				});
+			}			
+		},function(){
+			$location.path("/connexion");
+			$location.replace();
+		});
+	}]).
+	controller('nouvel_objetCtrl', ['$scope','$http','$location','$window','LoginManager', function($scope,$http,$location,$window,LoginManager) {
+
+		LoginManager.checkLogin(function(){	
+			$http.get('/categories').success(function(data) {
+				$scope.categories = data;
+			});
+			$scope.hiddenMessage = true;
+			$scope.errorMessage = "";
+
+			$scope.file = null;
+			$scope.nom_objet="";
+			$scope.category="";
+			$scope.description=null;
+		
+
+			$window.updatePicture = function(elem) {
+				var file = elem.files[0]; //le fichier lui même
+				var reader = new FileReader();
+				// Closure to capture the file information.
+				reader.onload = (function(theFile,element) {
+					return function(e) {
+						$scope.file= theFile;
+						$scope.imgB64=e.target.result,
+						$scope.imgName=escape(theFile.name);
+						$scope.$digest(); //met à jour les vues avec le nouveau scope
+					};
+				})(file,elem);
+				// Read in the image file as a data URL.
+		  		reader.readAsDataURL(file);
+			}
+
+			$scope.submit = function(){
+				$http({
+				    method: 'POST',
+				    url: "/items",
+				    //IMPORTANT!!! You might think this should be set to 'multipart/form-data' 
+				    // but this is not true because when we are sending up files the request 
+				    // needs to include a 'boundary' parameter which identifies the boundary 
+				    // name between parts in this multi-part request and setting the Content-type 
+				    // manually will not set this boundary parameter. For whatever reason, 
+				    // setting the Content-type to 'false' will force the request to automatically
+				    // populate the headers properly including the boundary parameter.
+				    headers: { 'Content-Type': false },
+				    //This method will allow us to change how the data is sent up to the server
+				    // for which we'll need to encapsulate the model data in 'FormData'
+				    transformRequest: function (data) {
+				        var formData = new FormData();
+				        formData.append("nom_objet", data.nom_objet);
+				        formData.append("category", data.category);
+				        formData.append("description", data.description);
+				        //now add the assigned file
+				        formData.append("photo", data.file);
+				        return formData;
+				    },
+				    //Create an object that contains the model and files which will be transformed
+				    // in the above transformRequest method
+				    data: {
+						nom_objet:$scope.nom_objet,
+						category:$scope.category,
+						description:$scope.description, 
+						file: $scope.file
+					}
+				}).
+				success(function (data, status, headers, config) {
+					$location.path("/items/my");
+					$location.replace();
+				}).
+				error(function (data, status, headers, config) {
+					$scope.hiddenMessage = false;
+					$scope.errorMessage = "Echec de la création de l'objet. Veuillez réessayer."
+				});
+			};
+		},function(){
+			$location.path("/connexion");
+			$location.replace();
+		});
+		
 	}]);

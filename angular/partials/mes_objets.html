@@ -1,0 +1,20 @@
+<header class="topBar bois">
+	<a href="#/"><i class="iconHome"></i></a>
+	<h3>Mes objets</h3>
+</header>
+<div ng-hide="hiddenMessage" class="errorMessage">
+	{{errorMessage}}
+</div>
+<section id="mes_objets">
+	<ul class="unstyled onePicList">
+		<li ng-repeat="item in item_list">
+			<a class="pic" href="#/edit_objet/{{item.id}}">
+				<img class="ElemListPic" ng-src="/items/pictures/{{item.id}}" class="img-rounded">
+			</a>
+			<h4><a href="#/edit_objet/{{item.id}}">{{item.name}}</a>
+				<i class="iconDelete" ng-click="clickDelete(item.id,$index)"></i>
+			</h4>
+		</li>
+	</ul>
+	<a href="#/nouvel_objet" class="largeButton bois">Nouvel Objet</a>
+</section>

@@ -1,0 +1,34 @@
+<header class="topBar bois">
+	<a href="#/"><i class="iconHome"></i></a>
+	<h3>Inscription</h3>
+</header>
+<ul class="unstyled">
+	<li ng-hide="hiddenMessage" class="errorMessage" ng-repeat="errorMessage in errorMessages">
+		{{errorMessage}}
+	</li>
+</ul>
+<section id="nouvel_objet">
+	<form ng-submit="submit()" enctype="multipart/form-data" name="myForm">
+		<div>		
+			<input type="file" accept="image/png" name="photo" required="required" capture="camera" autofocus="autofocus" onchange="updatePicture(this)"/>
+			<!-- Angular ne gère pas les input de type file, du coup je fais tout en JavaScript maison -->
+			<img ng-src="{{imgB64}}" title="{{imgName}}" width="320px"/>
+		</div>
+		<div>
+			<label for="nom_objet">Nom de l'objet</label>
+			<input type="text" name="nom_objet" id="nom_objet" required=required required="required" ng-model="nom_objet">
+		</div>
+		<div>
+			<label for="category">Catégorie</label>
+			<select name="category" id="category" ng-model="category" required="required"/>
+				  <option value="{{category}}" ng-repeat="category in categories">{{category}}</option>
+			</select>
+		</div>
+		<div>
+			<label for="description">Description de l'objet</label>
+			<textarea id="description" ng-model="description" ></textarea>
+		</div>
+		<input type="submit" class="largeButton bois" value="Valider votre objet">
+	</form>
+</section>
+
