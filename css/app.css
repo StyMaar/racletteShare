@@ -444,22 +444,30 @@ article:last-child{
 	spécificité de la page de nouvel_objet
 */
 
-#nouvel_objet input[type="text"], #nouvel_objet select, #nouvel_objet textarea {
+#nouvel_objet input[type="text"], #nouvel_objet select, #nouvel_objet textarea, #edit_objet input[type="text"], #edit_objet select, #edit_objet textarea {
 	width:100%;
 }
 
-
-#nouvel_objet textarea {
+#nouvel_objet textarea, #edit_objet textarea {
 	height:150px;
 	
 }
 
-#nouvel_objet div {
+#nouvel_objet #imgDiv, #edit_objet #imgDiv {
+	text-align:center;
+}
+
+#nouvel_objet img, #edit_objet img {
+	width:320px;
+}
+
+
+#nouvel_objet div, #edit_objet div {
 	margin: 15px 0px;
 }
 
 @media (min-width:600px){
-	#nouvel_objet div {
+	#nouvel_objet div, #edit_objet div {
 		width:60%;
 		margin: 15px 20%;
 	}

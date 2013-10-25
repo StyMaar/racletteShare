@@ -138,13 +138,12 @@ angular.module('controllers', ['racletteModules']).
 		});
 	}]).
 	controller('nouvel_objetCtrl', ['$scope','$http','$location','$window','LoginManager', function($scope,$http,$location,$window,LoginManager) {
-
+		$scope.hiddenMessage = true;
+		$scope.errorMessage = "";
 		LoginManager.checkLogin(function(){	
 			$http.get('/categories').success(function(data) {
 				$scope.categories = data;
 			});
-			$scope.hiddenMessage = true;
-			$scope.errorMessage = "";
 
 			$scope.file = null;
 			$scope.nom_objet="";
@@ -169,44 +168,14 @@ angular.module('controllers', ['racletteModules']).
 			}
 
 			$scope.submit = function(){
-				$http({
-				    method: 'POST',
-				    url: "/items",
-				    //IMPORTANT!!! You might think this should be set to 'multipart/form-data' 
-				    // but this is not true because when we are sending up files the request 
-				    // needs to include a 'boundary' parameter which identifies the boundary 
-				    // name between parts in this multi-part request and setting the Content-type 
-				    // manually will not set this boundary parameter. For whatever reason, 
-				    // setting the Content-type to 'false' will force the request to automatically
-				    // populate the headers properly including the boundary parameter.
-				    headers: { 'Content-Type': false },
-				    //This method will allow us to change how the data is sent up to the server
-				    // for which we'll need to encapsulate the model data in 'FormData'
-				    transformRequest: function (data) {
-				        var formData = new FormData();
-				        formData.append("nom_objet", data.nom_objet);
-				        formData.append("category", data.category);
-				        formData.append("description", data.description);
-				        //now add the assigned file
-				        formData.append("photo", data.file);
-				        return formData;
-				    },
-				    //Create an object that contains the model and files which will be transformed
-				    // in the above transformRequest method
-				    data: {
-						nom_objet:$scope.nom_objet,
-						category:$scope.category,
-						description:$scope.description, 
-						file: $scope.file
-					}
-				}).
+				
 				success(function (data, status, headers, config) {
 					$location.path("/items/my");
 					$location.replace();
 				}).
 				error(function (data, status, headers, config) {
 					$scope.hiddenMessage = false;
-					$scope.errorMessage = "Echec de la création de l'objet. Veuillez réessayer."
+					$scope.errorMessage = "Echec de la création de l'objet. Veuillez réessayer.";
 				});
 			};
 		},function(){
@@ -214,4 +183,62 @@ angular.module('controllers', ['racletteModules']).
 			$location.replace();
 		});
 		
+	}]).
+	controller('edit_objetCtrl', ['$scope','$http','$location','$routeParams','LoginManager', function($scope,$http,$location,$routeParams,LoginManager) {
+		$scope.hiddenMessage = true;
+		$scope.errorMessage = "";
+		$scope.itemId = $routeParams.itemId;
+		LoginManager.checkLogin(function(){	
+			$http.get('/categories').success(function(data) {
+				$scope.categories = data;
+			});
+
+			$http.get('/items/detail/'+$scope.itemId).success(function(data) {				
+				$scope.nom_objet=data.name;
+				$scope.category=data.category;
+				$scope.description=data.description;
+			}).
+			error(function(){
+				$scope.hiddenMessage = false;
+				$scope.errorMessage = "Objet introuvable";
+				$scope.submit = function(){}; //on désactive le bouton d'envoi
+				//et on redirige l'utilisateur vers la liste de ses objets
+				$timeout(function(){
+					$location.path("/items/my");
+					$location.replace();
+				},5000);
+			});
+
+			$scope.submit = function(){
+				var putData = {
+					nom_objet:$scope.nom_objet,
+					category:$scope.category,
+					description:$scope.description
+				}
+				
+				$http.put('/items/detail/'+$scope.itemId,putData).success(function (data, status, headers, config) {
+					$location.path("/items/my");
+					$location.replace();
+				}).
+				error(function (data, status, headers, config) {
+					$scope.hiddenMessage = false;
+					$scope.errorMessage = "Echec de la mise à jour de l'objet. Veuillez réessayer.";
+				});
+			};
+		},function(){
+			$location.path("/connexion");
+			$location.replace();
+		});
+		
+	}]).
+	controller('recherche_categoryCtrl', ['$scope','$http','$routeParams', function($scope,$http,$routeParams) {
+		$scope.hiddenMessage = true;
+		$scope.errorMessage = "";
+		$scope.category = $routeParams.category;
+		$http.get('/items/category/'+$scope.category).success(function(data) {				
+
+		}).
+		error(function(){
+			
+		});	
 	}]);

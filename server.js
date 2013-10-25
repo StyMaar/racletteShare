@@ -468,7 +468,7 @@ function deleteItem(userId, itemId){
 
 
 /*================================================
-	Nouvel objets
+	Nouvel objet
 ==================================================*/
 
 app.post("/items",function(req,res){
@@ -493,12 +493,15 @@ app.post("/items",function(req,res){
 		}
 		var exReg = /.*(\.[a-z]*)$/; //regex pour trouver l'extension du fichier
 		var extension = photo.path.replace(exReg,"$1");
+
 		//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
-		async.parallel([newItem(req.session.user_id, req.body, extension)],function(err,results){
+		async.parallel([newItem(req.session.user_id, req.body)],function(err,results){
 			if(kutils.checkError(err,res)){
-				fs.rename(photo.path, results[0], function (err) {
+				var id = results[0];
+				var itemPath = __dirname + '/pictures/' + id + extension;
+				fs.rename(photo.path, itemPath, function (err) {
 					if(kutils.checkError(err,res)){
-						console.log('renamed complete :'+ results[0]);
+						console.log('renamed complete :'+ itemPath);
 						kutils.ok(res);
 					}
 				});
@@ -524,13 +527,12 @@ function deleteFile(path){
 
 
 /*
-  newItem : prend les infos correspondant au nouvel objet (latitude,longitude,name,description,category_id,tagsList)
+  newItem : prend les infos correspondant au nouvel objet
   et créé cet objet dans la base
 */
 
-function newItem(userId, item, extension){
+function newItem(userId, item){
 	var id = kutils.uuid();
-	var itemPath = __dirname + '/pictures/' + id + extension;
 	return function(callback){
 		pool.getConnection(function(err,connection){
 			//on s'assure que l'appel d'une connection dans le pool se passe bien.
@@ -538,15 +540,106 @@ function newItem(userId, item, extension){
 				callback(err);
 				return;
 			}
-			connection.query('INSERT INTO item (id, user_id, name, description, category, picturePath) \
-			VALUES (?,?,?,?,?,?)', [id, userId, item.nom_objet, item.description, item.category, itemPath], function(err, results) {
+			connection.query('INSERT INTO item (id, user_id, name, description, category) \
+			VALUES (?,?,?,?,?)', [id, userId, item.nom_objet, item.description, item.category], function(err, results) {
 				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
 				err = kutils.checkUpdateErr(err,results);		
-				callback(err,itemPath);
+				callback(err,id);
 			});
 		});
 	}
 }
+
+/*================================================
+	Edit objets
+==================================================*/
+app.get("/items/detail/:itemId",function(req,res){
+	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
+		var itemId = req.params.itemId;	
+		try{		
+			check(itemId).isUUIDv4() ;
+		} catch (e){
+			kutils.badRequest(res);
+			return;
+		}
+		//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
+		async.parallel([getItem(itemId)],function(err,results){
+			if(kutils.checkError(err,res)){
+				var itemDetails = results[0];
+				res.contentType('application/json');
+				res.send(JSON.stringify(itemDetails));
+			}
+		});
+	}else{
+		kutils.forbiden(res);
+	}
+});
+
+function getItem(itemId){
+	return function(callback){
+		pool.getConnection(function(err,connection){
+			//on s'assure que l'appel d'une connection dans le pool se passe bien.
+			if(err){
+				callback(err);
+				return;
+			}
+			connection.query('SELECT name, description, category FROM item WHERE id= ?', [itemId], function(err, rows) {
+				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
+				var itemDetails = null;
+				if(!err){
+					if(rows && rows.length!=0){
+						itemDetails = rows[0];
+					}else{
+						err = "notFound";
+					}
+				}
+				callback(err,itemDetails);
+			});
+		});
+	}
+}
+
+app.put("/items/detail/:itemId",function(req,res){
+	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
+		var itemId=req.params.itemId;
+		try {
+			check(itemId).isUUIDv4();
+			check(req.body.nom_objet).len(3,64);
+			if(req.body.description){ //si une description est renseignée, on s'assure que c'est bien une description
+				check(req.body.description).len(0,255);
+			}
+		} catch (e){
+			kutils.badRequest(res);
+			return;
+		}
+		//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
+		async.parallel([editItem(req.session.user_id, req.body, itemId)],function(err,results){
+			if(kutils.checkError(err,res)){
+				kutils.ok(res);
+			}
+		});
+	}else{
+		kutils.forbiden(res);
+	}
+});
+
+function editItem(userId, item, itemId){
+	return function(callback){
+		pool.getConnection(function(err,connection){
+			//on s'assure que l'appel d'une connection dans le pool se passe bien.
+			if(err){
+				callback(err);
+				return;
+			}
+			connection.query('UPDATE `item` SET `name`=?,`description`=?,`category`=? WHERE id=? AND user_id = ?', [item.nom_objet, item.description, item.category, itemId, userId], function(err, results) {
+				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
+				err = kutils.checkUpdateErr(err,results);		
+				callback(err);
+			});
+		});
+	}
+}
+
 
 /////////////////////////////////////////////////////////////////////////
 

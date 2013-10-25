@@ -10,5 +10,7 @@ angular.module('racletteShare', ['controllers']).
     $routeProvider.when('/users/my', {templateUrl: 'angular/partials/mon_profil.html', controller: 'mon_profilCtrl'});
     $routeProvider.when('/items/my', {templateUrl: 'angular/partials/mes_objets.html', controller: 'mes_objetsCtrl'});
     $routeProvider.when('/nouvel_objet', {templateUrl: 'angular/partials/nouvel_objet.html', controller: 'nouvel_objetCtrl'});
+    $routeProvider.when('/edit_objet/:itemId', {templateUrl: 'angular/partials/edit_objet.html', controller: 'edit_objetCtrl'});
+    $routeProvider.when('/items/category/:category', {templateUrl: 'angular/partials/recherche_category.html', controller: 'recherche_categoryCtrl'});
     $routeProvider.otherwise({redirectTo: '/'});
   }]);
