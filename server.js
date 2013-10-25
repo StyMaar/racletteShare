@@ -137,12 +137,16 @@ app.get('/items/pictures/:itemId', function (req, res) {
 		return;
 	}
 	try{
-		res.sendfile(__dirname + '/pictures/'+req.params.itemId+'.png');
+		res.sendfile(getPicturePathFromId(req.params.itemId));
 	}catch(e){
 		console.log(e);
 		res.sendfile(__dirname + '/pictures/pot.png');
 	}
 });
+
+function getPicturePathFromId(itemId){
+	return __dirname + '/pictures/'+itemId+'.png'
+};
 
 /*
 app.get('/items/pictures/:itemId', function (req, res) {
@@ -437,6 +441,7 @@ app.delete("/items/detail/:itemId",function(req,res){
 		async.parallel([deleteItem(req.session.user_id, itemId)],function(err,results){
 			if(kutils.checkError(err,res)){
 				kutils.ok(res);
+				deleteFile(getPicturePathFromId(itemId));
 			}
 		});
 	}else{
@@ -498,7 +503,8 @@ app.post("/items",function(req,res){
 		async.parallel([newItem(req.session.user_id, req.body)],function(err,results){
 			if(kutils.checkError(err,res)){
 				var id = results[0];
-				var itemPath = __dirname + '/pictures/' + id + extension;
+				//var itemPath = __dirname + '/pictures/' + id + extension;
+				var itemPath = getPicturePathFromId(id);
 				fs.rename(photo.path, itemPath, function (err) {
 					if(kutils.checkError(err,res)){
 						console.log('renamed complete :'+ itemPath);
@@ -551,27 +557,31 @@ function newItem(userId, item){
 }
 
 /*================================================
-	Edit objets
+	Edit objet
 ==================================================*/
-app.get("/items/detail/:itemId",function(req,res){
-	var itemId = req.params.itemId;	
-	try{		
-		check(itemId).isUUIDv4() ;
-	} catch (e){
-		kutils.badRequest(res);
-		return;
-	}
-	//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
-	async.parallel([getItem(itemId)],function(err,results){
-		if(kutils.checkError(err,res)){
-			var itemDetails = results[0];
-			res.contentType('application/json');
-			res.send(JSON.stringify(itemDetails));
+app.get("/items/my/detail/:itemId",function(req,res){
+	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
+		var itemId = req.params.itemId;	
+		try{		
+			check(itemId).isUUIDv4() ;
+		} catch (e){
+			kutils.badRequest(res);
+			return;
 		}
-	});
+		//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
+		async.parallel([getMyItem(itemId, req.session.user_id)],function(err,results){
+			if(kutils.checkError(err,res)){
+				var itemDetails = results[0];
+				res.contentType('application/json');
+				res.send(JSON.stringify(itemDetails));
+			}
+		});
+	}else{
+		kutils.forbiden(res);
+	}
 });
 
-function getItem(itemId){
+function getMyItem(itemId, userId){
 	return function(callback){
 		pool.getConnection(function(err,connection){
 			//on s'assure que l'appel d'une connection dans le pool se passe bien.
@@ -579,7 +589,7 @@ function getItem(itemId){
 				callback(err);
 				return;
 			}
-			connection.query('SELECT name, description, category FROM item WHERE id= ?', [itemId], function(err, rows) {
+			connection.query('SELECT name, description, category FROM item WHERE id= ? AND user_id = ?', [itemId, userId], function(err, rows) {
 				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
 				var itemDetails = null;
 				if(!err){
@@ -635,10 +645,10 @@ function editItem(userId, item, itemId){
 		});
 	}
 }
+/*================================================
+	recherche_categorie
+==================================================*/
 
-/*
-	Recherche par catégorie
-*/
 app.get("/items/category/:category",function(req,res){
 	var category = req.params.category;	
 	try{		
@@ -673,6 +683,52 @@ function getItemByCategory(category){
 					}
 				}
 				callback(err,rows);
+			});
+		});
+	}
+}
+
+/*================================================
+	Detail_objet
+==================================================*/
+app.get("/items/detail/:itemId",function(req,res){
+	var itemId = req.params.itemId;	
+	try{		
+		check(itemId).isUUIDv4() ;
+	} catch (e){
+		kutils.badRequest(res);
+		return;
+	}
+	//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
+	async.parallel([getItemDetail(itemId,req.session.user_id)],function(err,results){
+		if(kutils.checkError(err,res)){
+			var itemDetails = results[0];
+			res.contentType('application/json');
+			res.send(JSON.stringify(itemDetails));
+		}
+	});
+});
+
+//ici le userId est là a titre informatif, on indiquera d'une façon spéciale dans la liste les objets qui m'appartiennent.
+function getItemDetail(itemId,userId){
+	return function(callback){
+		pool.getConnection(function(err,connection){
+			//on s'assure que l'appel d'une connection dans le pool se passe bien.
+			if(err){
+				callback(err);
+				return;
+			}
+			connection.query("SELECT if( item.user_id = ?, 'mine', '' ) as isMine, item.name as name, item.description as description, item.category as category, user.name as ownerName, item.user_id as ownerId FROM item INNER JOIN user ON item.user_id=user.id WHERE item.id= ?", [userId, itemId], function(err, rows) {
+				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
+				var itemDetails = null;
+				if(!err){
+					if(rows && rows.length!=0){
+						itemDetails = rows[0];
+					}else{
+						err = "notFound";
+					}
+				}
+				callback(err,itemDetails);
 			});
 		});
 	}

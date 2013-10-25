@@ -168,7 +168,37 @@ angular.module('controllers', ['racletteModules']).
 			}
 
 			$scope.submit = function(){
-				
+				$http({
+				    method: 'POST',
+				    url: "/items",
+				    //IMPORTANT!!! You might think this should be set to 'multipart/form-data' 
+				    // but this is not true because when we are sending up files the request 
+				    // needs to include a 'boundary' parameter which identifies the boundary 
+				    // name between parts in this multi-part request and setting the Content-type 
+				    // manually will not set this boundary parameter. For whatever reason, 
+				    // setting the Content-type to 'false' will force the request to automatically
+				    // populate the headers properly including the boundary parameter.
+				    headers: { 'Content-Type': false },
+				    //This method will allow us to change how the data is sent up to the server
+				    // for which we'll need to encapsulate the model data in 'FormData'
+				    transformRequest: function (data) {
+				        var formData = new FormData();
+				        formData.append("nom_objet", data.nom_objet);
+				        formData.append("category", data.category);
+				        formData.append("description", data.description);
+				        //now add the assigned file
+				        formData.append("photo", data.file);
+				        return formData;
+				    },
+				    //Create an object that contains the model and files which will be transformed
+				    // in the above transformRequest method
+				    data: {
+						nom_objet:$scope.nom_objet,
+						category:$scope.category,
+						description:$scope.description, 
+						file: $scope.file
+					}
+				}).
 				success(function (data, status, headers, config) {
 					$location.path("/items/my");
 					$location.replace();
@@ -193,7 +223,7 @@ angular.module('controllers', ['racletteModules']).
 				$scope.categories = data;
 			});
 
-			$http.get('/items/detail/'+$scope.itemId).success(function(data) {				
+			$http.get('/items/my/detail/'+$scope.itemId).success(function(data) {				
 				$scope.nom_objet=data.name;
 				$scope.category=data.category;
 				$scope.description=data.description;
@@ -244,4 +274,27 @@ angular.module('controllers', ['racletteModules']).
 			$scope.hiddenMessage = false;
 			$scope.errorMessage = "Aucun objet trouvé autour de chez vous dans cette catégorie";
 		});	
+	}]).
+	controller('detail_objetCtrl', ['$scope','$http','$routeParams', function($scope,$http,$routeParams) {
+		$scope.hiddenMessage = true;
+		$scope.errorMessage = "";
+		$scope.itemId = $routeParams.itemId;
+		$http.get('/items/detail/'+$scope.itemId).success(function(data) {				
+				$scope.nom_objet=data.name;
+				$scope.category=data.category;
+				$scope.description=data.description;
+				$scope.contactName=data.ownerName;
+				$scope.contactId=data.ownerId;
+				$scope.isMine = data.isMine;
+		}).
+		error(function(){
+			$scope.hiddenMessage = false;
+			$scope.errorMessage = "Objet introuvable";
+			$scope.submit = function(){}; //on désactive le bouton d'envoi
+			//et on redirige l'utilisateur vers la liste de ses objets
+			$timeout(function(){
+				$location.path("/");
+				$location.replace();
+			},2500);
+		});
 	}]);

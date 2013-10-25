@@ -5,10 +5,10 @@
 <div ng-hide="hiddenMessage" class="errorMessage">
 	{{errorMessage}}
 </div>
-<section id="edit_objet">
+<section id="edit_objet" ng-hide="!hiddenMessage">
 	<form ng-submit="submit()">
 		<div id="imgDiv">
-			<img ng-src="/items/pictures/{{itemId}}" alt="photo de l'objet" width="320px"/>
+			<img ng-src="/items/pictures/{{itemId}}" alt="photo de l'objet"/>
 		</div>
 		<div>
 			<label for="nom_objet">Nom de l'objet</label>
