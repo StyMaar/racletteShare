@@ -2,11 +2,9 @@
 	<a href="#/"><i class="iconHome"></i></a>
 	<h3>Nouvel objet</h3>
 </header>
-<ul class="unstyled">
-	<li ng-hide="hiddenMessage" class="errorMessage" ng-repeat="errorMessage in errorMessages">
-		{{errorMessage}}
-	</li>
-</ul>
+<div ng-hide="hiddenMessage" class="errorMessage">
+	{{errorMessage}}
+</div>
 <section id="nouvel_objet">
 	<form ng-submit="submit()">
 		<div id="imgDiv">		

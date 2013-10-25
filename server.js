@@ -554,25 +554,21 @@ function newItem(userId, item){
 	Edit objets
 ==================================================*/
 app.get("/items/detail/:itemId",function(req,res){
-	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
-		var itemId = req.params.itemId;	
-		try{		
-			check(itemId).isUUIDv4() ;
-		} catch (e){
-			kutils.badRequest(res);
-			return;
-		}
-		//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
-		async.parallel([getItem(itemId)],function(err,results){
-			if(kutils.checkError(err,res)){
-				var itemDetails = results[0];
-				res.contentType('application/json');
-				res.send(JSON.stringify(itemDetails));
-			}
-		});
-	}else{
-		kutils.forbiden(res);
+	var itemId = req.params.itemId;	
+	try{		
+		check(itemId).isUUIDv4() ;
+	} catch (e){
+		kutils.badRequest(res);
+		return;
 	}
+	//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
+	async.parallel([getItem(itemId)],function(err,results){
+		if(kutils.checkError(err,res)){
+			var itemDetails = results[0];
+			res.contentType('application/json');
+			res.send(JSON.stringify(itemDetails));
+		}
+	});
 });
 
 function getItem(itemId){
@@ -640,6 +636,47 @@ function editItem(userId, item, itemId){
 	}
 }
 
+/*
+	Recherche par catégorie
+*/
+app.get("/items/category/:category",function(req,res){
+	var category = req.params.category;	
+	try{		
+		
+	} catch (e){
+		kutils.badRequest(res);
+		return;
+	}
+	//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
+	async.parallel([getItemByCategory(category)],function(err,results){
+		if(kutils.checkError(err,res)){
+			var itemList = results[0];
+			res.contentType('application/json');
+			res.send(JSON.stringify(itemList));
+		}
+	});
+});
+
+function getItemByCategory(category){
+	return function(callback){
+		pool.getConnection(function(err,connection){
+			//on s'assure que l'appel d'une connection dans le pool se passe bien.
+			if(err){
+				callback(err);
+				return;
+			}
+			connection.query('SELECT item.id as id, user.name as ownerName, item.name as name FROM item INNER JOIN user ON item.user_id=user.id WHERE item.category= ?', [category], function(err, rows) {
+				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
+				if(!err){
+					if(!rows || rows.length==0){
+						err = "notFound";
+					}
+				}
+				callback(err,rows);
+			});
+		});
+	}
+}
 
 /////////////////////////////////////////////////////////////////////////
 

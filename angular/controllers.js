@@ -184,7 +184,7 @@ angular.module('controllers', ['racletteModules']).
 		});
 		
 	}]).
-	controller('edit_objetCtrl', ['$scope','$http','$location','$routeParams','LoginManager', function($scope,$http,$location,$routeParams,LoginManager) {
+	controller('edit_objetCtrl', ['$scope','$http','$location','$routeParams','$timeout','LoginManager', function($scope,$http,$location,$routeParams,$timeout, LoginManager) {
 		$scope.hiddenMessage = true;
 		$scope.errorMessage = "";
 		$scope.itemId = $routeParams.itemId;
@@ -206,7 +206,7 @@ angular.module('controllers', ['racletteModules']).
 				$timeout(function(){
 					$location.path("/items/my");
 					$location.replace();
-				},5000);
+				},2500);
 			});
 
 			$scope.submit = function(){
@@ -236,9 +236,12 @@ angular.module('controllers', ['racletteModules']).
 		$scope.errorMessage = "";
 		$scope.category = $routeParams.category;
 		$http.get('/items/category/'+$scope.category).success(function(data) {				
-
+			$scope.item_list = data;
 		}).
-		error(function(){
-			
+		error(function(data, status){
+			console.log(data);
+			console.log(status);
+			$scope.hiddenMessage = false;
+			$scope.errorMessage = "Aucun objet trouvé autour de chez vous dans cette catégorie";
 		});	
 	}]);
