@@ -133,6 +133,10 @@ input, select, textarea{
     display: none;
 }
 
+.muted {
+	color:#BBB;
+}
+
 /*
 	Un message d'erreur à la bootstrap mais avec de plus jolies couleurs
 */

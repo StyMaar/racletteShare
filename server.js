@@ -734,6 +734,126 @@ function getItemDetail(itemId,userId){
 	}
 }
 
+/*================================================
+	Detail_conversation
+==================================================*/
+app.get("/messages/:itemId/:contactId",function(req,res){
+	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
+		var itemId = req.params.itemId;
+		var contactId = req.params.contactId;
+		try{		
+			check(itemId).isUUIDv4();
+			check(contactId).isUUIDv4();
+		} catch (e){
+			kutils.badRequest(res);
+			return;
+		}
+		//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
+		async.parallel([getConversationDetail(itemId,contactId), getMessagesList(itemId,contactId,req.session.user_id)],function(err,results){
+			if(kutils.checkError(err,res)){
+				var convDetails = results[0];
+				convDetail.messages_list= results[1];
+				res.contentType('application/json');
+				res.send(JSON.stringify(convDetails));
+			}
+		});
+	}else{
+		kutils.forbiden(res);
+	}
+});
+
+function getConversationDetail(itemId,contactId){
+	return function(callback){
+		pool.getConnection(function(err,connection){
+			//on s'assure que l'appel d'une connection dans le pool se passe bien.
+			if(err){
+				callback(err);
+				return;
+			}
+			connection.query("SELECT user.name as nom_contact, item.name as nom_objet FROM user INNER JOIN item ON item.user_id=user.id WHERE item.id=? AND user.id= ?", [userId, contactId], function(err, rows) {
+				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
+				var convDetails = null;
+				if(!err){
+					if(rows && rows.length!=0){
+						convDetails = rows[0];
+					}else{
+						err = "notFound";
+					}
+				}
+				callback(err,convDetails);
+			});
+		});
+	}
+}
+
+function getMessagesList(itemId,contactId,myId){
+	return function(callback){
+		pool.getConnection(function(err,connection){
+			//on s'assure que l'appel d'une connection dans le pool se passe bien.
+			if(err){
+				callback(err);
+				return;
+			}
+			connection.query("SELECT message.date, \
+								message.content, \
+								IF(message.sender_id = ?,'me','other') AS sender \
+							FROM \
+								message \
+							WHERE message.item_id = ? \
+								AND ( \
+								(message.sender_id = ? AND message.receiver_id = ?) OR (message.sender_id = ? AND message.receiver_id = ?) \
+								) \
+							ORDER BY message.date; ", [myId,itemId,myId,contactId,contactId,myId], function(err, rows) {
+				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
+				var msgList = rows;
+				callback(err,msgList);
+			});
+		});
+	}
+}
+
+app.post("/messages/:itemId/:contactId",function(req,res){
+	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
+		var contactId = req.params.contactId;
+		var itemId = req.params.itemId;
+		try{		
+			check(itemId).isUUIDv4();
+			check(contactId).isUUIDv4();
+		} catch (e){
+			kutils.badRequest(res);
+			return;
+		}
+		//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
+		async.parallel([newMessage(itemId, req.session.user_id, contactId, req.body.message)],function(err,results){
+			if(kutils.checkError(err,res)){			
+				kutils.ok(res);
+			}
+		});
+	}else{
+		kutils.forbiden(res);
+	}
+});
+
+
+function newMessage(itemId, myId, contactId, message){
+	return function(callback){
+		pool.getConnection(function(err,connection){
+			//on s'assure que l'appel d'une connection dans le pool se passe bien.
+			if(err){
+				callback(err);
+				return;
+			}
+			connection.query("INSERT INTO message (item_id, sender_id, content, date, receiver_id ) \
+SELECT ?, ?, ?, NOW(), ? FROM item WHERE id = ? AND (user_id = ? OR user_id = ?)", [itemId, myId, message, contactId, itemId, myId, contactId] , function(err, results) {
+				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
+				err = kutils.checkUpdateErr(err,results);
+				callback(err);
+			});
+		});
+	}
+}
+
+
 /////////////////////////////////////////////////////////////////////////
 
 var usedPort = process.argv[2]||7777; //si jamais un numéro de port est passé en paramètre à l'execution du script node, alors on utilisera ce port là, sinon on utilise le port 7777 par défaut

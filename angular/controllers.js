@@ -280,12 +280,12 @@ angular.module('controllers', ['racletteModules']).
 		$scope.errorMessage = "";
 		$scope.itemId = $routeParams.itemId;
 		$http.get('/items/detail/'+$scope.itemId).success(function(data) {				
-				$scope.nom_objet=data.name;
-				$scope.category=data.category;
-				$scope.description=data.description;
-				$scope.contactName=data.ownerName;
-				$scope.contactId=data.ownerId;
-				$scope.isMine = data.isMine;
+			$scope.nom_objet=data.name;
+			$scope.category=data.category;
+			$scope.description=data.description;
+			$scope.contactName=data.ownerName;
+			$scope.contactId=data.ownerId;
+			$scope.isMine = data.isMine;
 		}).
 		error(function(){
 			$scope.hiddenMessage = false;
@@ -296,5 +296,54 @@ angular.module('controllers', ['racletteModules']).
 				$location.path("/");
 				$location.replace();
 			},2500);
+		});
+	}]).
+	controller('detail_conversationCtrl', ['$scope','$http','$routeParams','LoginManager', function($scope,$http,$routeParams,LoginManager) {
+		$scope.hiddenMessage = true;
+		$scope.errorMessage = "";
+		$scope.itemId = $routeParams.itemId;
+		$scope.contactId = $routeParams.contactId;
+		LoginManager.checkLogin(function(){	
+			$http.get('/messages/'+$scope.itemId+'/'+$scope.contactId).success(function(data) {				
+				$scope.nom_objet = data.nom_objet;
+				$scope.contact = data.nom_contact;
+				$scope.messages_list = data.messages_list;
+			}).
+			error(function(){
+				$scope.hiddenMessage = false;
+				$scope.errorMessage = "Objet ou personne introuvable";
+				$timeout(function(){
+					$location.path("/");
+					$location.replace();
+				},2500);
+			});
+			// l'url n'a pas exactement la même forme si c'est ma photo ou la photo d'un autre que j'affiche.
+			$scope.getPicUrl = function(tag){
+				if(tag == "me"){
+					return("/users/pictures/my");
+				}else{
+					return("/users/pictures/"+$scope.contactId);
+				}
+			}
+			$scope.clickSendMessage = function(){
+				$scope.hiddenMessage = true;
+				var postData ={};
+				postData.message = $scope.newMessage;
+				$http.post('/messages/'+$routeParams.itemId+'/'+$routeParams.contactId,postData).success(function(data) {
+					var msg = {};
+					msg.content = $scope.newMessage;
+					msg.sender="me";
+					msg.date = new Date().toISOString();
+					$scope.messages_list.push(msg);
+					$scope.newMessage="";
+				}).error(function(data, status, headers) {
+					$scope.hiddenMessage = false;
+					$scope.errorMessage = "L'envoi du message a échoué"
+				});
+			}
+
+		},function(){
+			$location.path("/connexion");
+			$location.replace();
 		});
 	}]);

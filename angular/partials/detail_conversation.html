@@ -1,0 +1,26 @@
+<header class="topBar bois">
+	<a href="#/"><i class="iconHome"></i></a>
+	<h3>{{nom_objet}} avec {{nom_contact}}</h3>
+</header>
+<section id="detail_conversation">
+	<ul id="messageList">
+		<li class="{{message.sender}}" ng-repeat="message in messages_list">
+			<img ng-src="{{getPicUrl(message.sender)}}">
+			<div>
+				<p>
+				{{message.content}}
+				</p>
+				<p class="muted">{{message.date}}</p>
+			</div>
+		</li>
+	</ul>
+	<div ng-hide="hiddenMessage" class="errorMessage">
+		{{errorMessage}}
+	</div>
+	<div>
+		<textarea ng-model="newMessage" placeholder="...">
+		</textarea>
+		<button ng-click="clickSendMessage()">Envoyer</button>
+	</div>
+</section>
+
