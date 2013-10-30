@@ -134,6 +134,7 @@ input, select, textarea{
 }
 
 .muted {
+	font-size:0.6em;
 	color:#BBB;
 }
 
@@ -530,4 +531,64 @@ article:last-child{
 		width:60%;
 		margin: 15px 20%;
 	}
+}
+
+/*
+	spécificité de la page de détail_conversation
+*/
+
+#detail_conversation .onePicList li{
+	border: 1px inset #ccc;
+	margin: 5px 0px;
+	padding:10px;
+	background-color:#FFF;
+}
+
+#detail_conversation .onePicList li.me{
+	background-color:#FFEFCe;
+	border:none;
+}
+
+#detail_conversation .onePicList .other .pic {
+	float:left;
+}
+
+#detail_conversation .onePicList .me .pic {
+	float:right;
+}
+
+#detail_conversation .onePicList img {
+	width: 50px;
+}
+
+#detail_conversation textarea {
+	text-align:right;
+	width:100%;
+	min-height:100px;
+}
+
+#detail_conversation .me {
+	text-align:right;
+}
+
+/*
+	spécificité de la page de mes_conversations
+*/
+
+#mes_conversations .onePicList li{
+	border: 2px inset #ccc;
+	-webkit-border-radius: 4px;
+	-ms-border-radius: 4px;
+	border-radius: 4px;
+	margin: 5px 0px;
+	padding:10px;
+	min-height:40px;
+}
+
+#mes_conversations .onePicList .pic {
+	float:left;
+}
+
+#mes_conversations .onePicList img {
+	width: 50px;
 }

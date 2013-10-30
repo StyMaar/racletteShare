@@ -261,7 +261,7 @@ angular.module('controllers', ['racletteModules']).
 		});
 		
 	}]).
-	controller('recherche_categoryCtrl', ['$scope','$http','$routeParams', function($scope,$http,$routeParams) {
+	controller('recherche_categoryCtrl', ['$scope','$http','$routeParams','$timeout', function($scope,$http,$routeParams,$timeout) {
 		$scope.hiddenMessage = true;
 		$scope.errorMessage = "";
 		$scope.category = $routeParams.category;
@@ -275,7 +275,7 @@ angular.module('controllers', ['racletteModules']).
 			$scope.errorMessage = "Aucun objet trouvé autour de chez vous dans cette catégorie";
 		});	
 	}]).
-	controller('detail_objetCtrl', ['$scope','$http','$routeParams', function($scope,$http,$routeParams) {
+	controller('detail_objetCtrl', ['$scope','$http','$routeParams','$location', function($scope,$http,$routeParams,$location) {
 		$scope.hiddenMessage = true;
 		$scope.errorMessage = "";
 		$scope.itemId = $routeParams.itemId;
@@ -298,7 +298,7 @@ angular.module('controllers', ['racletteModules']).
 			},2500);
 		});
 	}]).
-	controller('detail_conversationCtrl', ['$scope','$http','$routeParams','LoginManager', function($scope,$http,$routeParams,LoginManager) {
+	controller('detail_conversationCtrl', ['$scope','$http','$routeParams','LoginManager','$location','$timeout', function($scope,$http,$routeParams,LoginManager,$location,$timeout) {
 		$scope.hiddenMessage = true;
 		$scope.errorMessage = "";
 		$scope.itemId = $routeParams.itemId;
@@ -346,4 +346,26 @@ angular.module('controllers', ['racletteModules']).
 			$location.path("/connexion");
 			$location.replace();
 		});
+	}]).
+	controller('mes_conversationsCtrl', ['$scope','$http','$routeParams','LoginManager','$location','$timeout', function($scope,$http,$routeParams,LoginManager,$location,$timeout) {
+		$scope.hiddenMessage = true;
+		$scope.errorMessage = "";
+		LoginManager.checkLogin(function(){	
+			$http.get('/messages/conversations').success(function(data) {				
+				$scope.liste_conversations = data;
+			}).
+			error(function(){
+				$scope.hiddenMessage = false;
+				$scope.errorMessage = "Erreur";
+				$timeout(function(){
+					$location.path("/");
+					$location.replace();
+				},2500);
+			});
+		},function(){
+			$location.path("/connexion");
+			$location.replace();
+		});
 	}]);
+
+

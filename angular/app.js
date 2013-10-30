@@ -2,7 +2,7 @@
 
 
 // Declare app level module which depends on filters, and services
-angular.module('racletteShare', ['controllers']).
+angular.module('racletteShare', ['controllers','Filtres']).
   config(['$routeProvider', function($routeProvider) {
     $routeProvider.when('/connexion', {templateUrl: 'angular/partials/connexion.html', controller: 'connexionCtrl'});
     $routeProvider.when('/inscription', {templateUrl: 'angular/partials/inscription.html', controller: 'inscriptionCtrl'});
@@ -14,5 +14,6 @@ angular.module('racletteShare', ['controllers']).
     $routeProvider.when('/items/category/:category', {templateUrl: 'angular/partials/recherche_category.html', controller: 'recherche_categoryCtrl'});
     $routeProvider.when('/items/detail/:itemId', {templateUrl: 'angular/partials/detail_objet.html', controller: 'detail_objetCtrl'});
     $routeProvider.when('/messages/:itemId/:contactId', {templateUrl: 'angular/partials/detail_conversation.html', controller: 'detail_conversationCtrl'});
+    $routeProvider.when('/messages/conversations', {templateUrl: 'angular/partials/mes_conversations.html', controller: 'mes_conversationsCtrl'});
     $routeProvider.otherwise({redirectTo: '/'});
   }]);

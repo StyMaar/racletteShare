@@ -3,14 +3,14 @@
 	<h3>{{nom_objet}} avec {{nom_contact}}</h3>
 </header>
 <section id="detail_conversation">
-	<ul id="messageList">
+	<ul id="messageList" class="unstyled onePicList">
 		<li class="{{message.sender}}" ng-repeat="message in messages_list">
-			<img ng-src="{{getPicUrl(message.sender)}}">
+			<img class="pic "ng-src="{{getPicUrl(message.sender)}}">
 			<div>
 				<p>
 				{{message.content}}
 				</p>
-				<p class="muted">{{message.date}}</p>
+				<p class="muted">{{message.date | date}}</p>
 			</div>
 		</li>
 	</ul>
@@ -18,9 +18,9 @@
 		{{errorMessage}}
 	</div>
 	<div>
-		<textarea ng-model="newMessage" placeholder="...">
+		<textarea ng-model="newMessage" placeholder="Tapez votre message ici">
 		</textarea>
-		<button ng-click="clickSendMessage()">Envoyer</button>
+		<button class="largeButton bois" ng-click="clickSendMessage()">Envoyer</button>
 	</div>
 </section>
 

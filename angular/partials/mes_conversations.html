@@ -1,0 +1,14 @@
+<header class="topBar bois">
+	<a href="#/"><i class="iconHome"></i></a>
+	<h3>Conversations en cours</h3>
+</header>
+<section  id="mes_conversations">
+	<ul class="unstyled onePicList">
+		<li ng-repeat="conversation in liste_conversations">
+			<a href="#/messages/{{conversation.item_id}}/{{conversation.contact_id}}" class="pic">
+				<img ng-src="/items/pictures/{{conversation.item_id}}">
+			</a>
+			<a href="#/messages/{{conversation.item_id}}/{{conversation.contact_id}}">{{conversation.item_name}}, avec {{conversation.contact_name}}</a>
+		</li>
+	</ul>
+</section>

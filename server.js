@@ -752,7 +752,7 @@ app.get("/messages/:itemId/:contactId",function(req,res){
 		async.parallel([getConversationDetail(itemId,contactId), getMessagesList(itemId,contactId,req.session.user_id)],function(err,results){
 			if(kutils.checkError(err,res)){
 				var convDetails = results[0];
-				convDetail.messages_list= results[1];
+				convDetails.messages_list= results[1];
 				res.contentType('application/json');
 				res.send(JSON.stringify(convDetails));
 			}
@@ -770,7 +770,16 @@ function getConversationDetail(itemId,contactId){
 				callback(err);
 				return;
 			}
-			connection.query("SELECT user.name as nom_contact, item.name as nom_objet FROM user INNER JOIN item ON item.user_id=user.id WHERE item.id=? AND user.id= ?", [userId, contactId], function(err, rows) {
+			connection.query("SELECT * \
+				FROM (\
+					SELECT name AS nom_contact\
+					FROM user\
+					WHERE id = ?\
+				)A, (\
+					SELECT name AS nom_objet\
+					FROM item\
+					WHERE id = ?\
+				)B", [contactId,itemId], function(err, rows) {
 				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
 				var convDetails = null;
 				if(!err){
@@ -853,6 +862,47 @@ SELECT ?, ?, ?, NOW(), ? FROM item WHERE id = ? AND (user_id = ? OR user_id = ?)
 	}
 }
 
+/*================================================
+	Mes_conversations
+==================================================*/
+
+app.get("/messages/conversations",function(req,res){
+	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
+		//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
+		async.parallel([getConversationsList(req.session.user_id)],function(err,results){
+			if(kutils.checkError(err,res)){
+				var convList = results[0];
+				res.contentType('application/json');
+				res.send(JSON.stringify(convList));
+			}
+		});
+	}else{
+		kutils.forbiden(res);
+	}
+});
+
+function getConversationsList(myId){
+	return function(callback){
+		pool.getConnection(function(err,connection){
+			//on s'assure que l'appel d'une connection dans le pool se passe bien.
+			if(err){
+				callback(err);
+				return;
+			}
+			connection.query("SELECT DISTINCT user.id AS contact_id, user.name AS contact_name, item.id AS item_id, item.name AS item_name \
+							FROM (\
+								SELECT item_id, IF( message.sender_id = ?, message.receiver_id, IF( message.receiver_id = ?, message.sender_id, NULL ) ) AS contact_id \
+								FROM message \
+							)A \
+							INNER JOIN user ON A.contact_id = user.id\
+							INNER JOIN item ON A.item_id = item.id", [myId,myId], function(err, rows) {
+				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
+				var convList = rows;
+				callback(err,convList);
+			});
+		});
+	}
+}
 
 /////////////////////////////////////////////////////////////////////////
 

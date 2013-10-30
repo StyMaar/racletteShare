@@ -9,7 +9,7 @@
 	<ul class="unstyled onePicList">
 		<li ng-repeat="item in item_list">
 			<a class="pic" href="#/edit_objet/{{item.id}}">
-				<img class="ElemListPic" ng-src="/items/pictures/{{item.id}}" class="img-rounded">
+				<img ng-src="/items/pictures/{{item.id}}">
 			</a>
 			<h4><a href="#/edit_objet/{{item.id}}">{{item.name}}</a>
 				<i class="iconDelete" ng-click="clickDelete(item.id,$index)"></i>
