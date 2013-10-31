@@ -7,7 +7,9 @@
     "mysql": "x",
     "async": "x",
     "node-uuid":"x",
-	"validator":"x"
+	"validator":"x",
+	"redis":"x",
+	"connect-redis":"x"
   }
 }
 

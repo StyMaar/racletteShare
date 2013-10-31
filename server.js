@@ -3,7 +3,7 @@ var mysql = require('mysql');
 var pool = mysql.createPool({
 	host:'localhost',
 	user:'root',
-        password:'azerty',
+	password:'azerty',
 	database:'raclette'
 });
 var uuid = require('node-uuid').v4;
@@ -11,13 +11,32 @@ var async = require('async');
 var check = require('validator').check;
 var fs = require('fs');
 
+var EventEmitter = require('events').EventEmitter;
+
+var RedisStore = require("connect-redis")(express);
+var redis = require("redis").createClient();
+
 var app = express();
 
 //permet l'utilisation des sessions dans l'application
 //TODO: utiliser Reddis ici pour permettre de faire du load balancing sans soucis.
 // scr : http://blog.modulus.io/nodejs-and-express-sessions + l doc de connect sur les sessions pour la durée d'ouverture de la session
+// + http://stackoverflow.com/questions/14014446/how-to-save-and-retrieve-session-from-redis
 app.use(express.cookieParser());
-app.use(express.session({secret:"1234poney", cookie:{path: '/', httpOnly: true, maxAge: 8640000000 }})); //la session reste ouverte pendant 100 jours par défaut
+app.use(express.session({
+	secret:"azerty",
+	cookie:{
+		path: '/', 
+		httpOnly: true, 
+		maxAge: 8640000000 
+	},
+	store: new RedisStore({
+		host: 'localhost',
+		port: 6379, 
+		client: redis
+	})
+})); //la session reste ouverte pendant 100 jours par défaut
+
 // Rq : pour accédr aux infos de la session : req.session.bob 
 //end sessions
 
@@ -689,6 +708,49 @@ function getItemByCategory(category){
 }
 
 /*================================================
+	recherche_nom
+==================================================*/
+
+app.get("/items/keyword/:keyword",function(req,res){
+	var keyword = req.params.keyword;	
+	try{		
+		
+	} catch (e){
+		kutils.badRequest(res);
+		return;
+	}
+	//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
+	async.parallel([getItemByName(keyword)],function(err,results){
+		if(kutils.checkError(err,res)){
+			var itemList = results[0];
+			res.contentType('application/json');
+			res.send(JSON.stringify(itemList));
+		}
+	});
+});
+
+function getItemByName(keyword){
+	return function(callback){
+		pool.getConnection(function(err,connection){
+			//on s'assure que l'appel d'une connection dans le pool se passe bien.
+			if(err){
+				callback(err);
+				return;
+			}
+			connection.query('SELECT item.id as id, user.name as ownerName, item.name as name FROM item INNER JOIN user ON item.user_id=user.id WHERE MATCH (item.name,item.description) AGAINST (?)', [keyword], function(err, rows) {
+				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
+				if(!err){
+					if(!rows || rows.length==0){
+						err = "notFound";
+					}
+				}
+				callback(err,rows);
+			});
+		});
+	}
+}
+
+/*================================================
 	Detail_objet
 ==================================================*/
 app.get("/items/detail/:itemId",function(req,res){
@@ -834,7 +896,25 @@ app.post("/messages/:itemId/:contactId",function(req,res){
 		}
 		//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
 		async.parallel([newMessage(itemId, req.session.user_id, contactId, req.body.message)],function(err,results){
-			if(kutils.checkError(err,res)){			
+			if(kutils.checkError(err,res)){
+				var eventString = contactId+req.session.user_id+itemId;
+				var msg = {
+					sender:'other',
+					content:req.body.message,
+					date:(new Date()).toISOString()
+				};
+				if(notifier.listeners(eventString).length != 0){ //si le contact est en ligne avec nous, on lui envoie directement la réponse
+					notifier.emit(eventString,msg);
+				}else if(notifier.listeners(contactId).length != 0){ //si il est connecté mais pas en train de parler avec nous, on lui envoie une notification et on ajoute ça a la liste des messages non-lus
+					var notif = {
+						type:"message",
+						contact:req.session.user_id
+					}
+					addToUnread(contactId,req.session.user_id);
+					notifier.emit(contactId,notif);
+				}else{ //sinon on ajoute juste ça à la liste de ces messages non lu
+					addToUnread(contactId,req.session.user_id);
+				}
 				kutils.ok(res);
 			}
 		});
@@ -903,6 +983,85 @@ function getConversationsList(myId){
 		});
 	}
 }
+
+/////  Notifications des messages
+
+var notifier = new EventEmitter();
+
+function longPollResponse(res){
+	//une closure pour concerver la reponse http
+	return function (msg){
+		try {
+			res.contentType('application/json');
+			res.emit('kend'); //lorsque la connexion a retournée un resultat, on supprime aussi l'abonnement
+			res.send(JSON.stringify(msg));
+		}catch(e){
+			console.log(e);
+		}
+	}
+}
+
+app.get("/waitMessage/:itemId/:contactId",function(req,res){
+	if(req.session.user_id){
+		var myId = req.session.user_id;
+		var contactId = req.params.contactId;
+		var itemId = req.params.itemId;
+		try{		
+			check(itemId).isUUIDv4();
+			check(contactId).isUUIDv4();
+		} catch (e){
+			kutils.badRequest(res);
+			return;
+		}
+		var eventString = myId+contactId+itemId; // string caractérisant la conversation
+		var evtCb = longPollResponse(res);
+
+		notifier.on(eventString, evtCb); //on s'abonne aux notifications concernant cette conversation
+
+		function rmListener(){
+			notifier.removeListener(eventString, evtCb);	
+		}
+		res.on('close',rmListener); //lorsque la connexion est rompue, on supprime l'abonnement.
+		res.on('kend',rmListener); //lorsque la connexion a retournée un resultat, on supprime aussi l'abonnement
+	}else{
+		kutils.forbiden(res);
+	}
+});
+
+app.get("/notifs",function(req,res){
+	if(req.session.user_id){
+		var myId = req.session.user_id;
+		var eventString = myId;
+		var evtCb = longPollResponse(res);
+
+		notifier.on(eventString, evtCb); //on s'abonne aux notifications concernant mon identifiant
+
+		function rmListener(){
+			notifier.removeListener(eventString, evtCb);	
+		}
+		res.on('close',rmListener); //lorsque la connexion est rompue, on supprime l'abonnement.
+		res.on('kend',rmListener); //lorsque la connexion a retournée un resultat, on supprime aussi l'abonnement
+	}else{
+		kutils.forbiden(res);
+	}
+});
+
+function addToUnread(destinataire,expediteur){
+	console.log("fonction pas encore implémentée");
+}
+
+app.get("/allo",function(req,res){
+	var eE = new EventEmitter();
+	eE.on('bob',function(){
+		console.log("BOB !");
+	});
+	console.log(eE.listeners('bob'));
+	eE.removeAllListeners('bob');
+	eE.removeAllListeners('bob');
+	eE.removeAllListeners('bob');
+	console.log(eE.listeners('bob'));
+	res.send("toto");
+});
 
 /////////////////////////////////////////////////////////////////////////
 

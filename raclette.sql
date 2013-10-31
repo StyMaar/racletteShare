@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Oct 25, 2013 at 05:49 PM
+-- Generation Time: Oct 31, 2013 at 04:03 PM
 -- Server version: 5.5.31
 -- PHP Version: 5.4.4-14+deb7u5
 
@@ -152,40 +152,54 @@ INSERT INTO `item` (`id`, `user_id`, `name`, `description`, `category`) VALUES
 
 CREATE TABLE IF NOT EXISTS `message` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
-  `item_uuid` varchar(36) NOT NULL,
-  `sender_uuid` varchar(36) NOT NULL,
+  `item_id` varchar(36) NOT NULL,
+  `sender_id` varchar(36) NOT NULL,
   `content` varchar(255) DEFAULT NULL,
   `date` datetime NOT NULL,
-  `receiver_uuid` varchar(36) NOT NULL,
+  `receiver_id` varchar(36) NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `user_ID` (`sender_uuid`),
-  KEY `object_ID` (`item_uuid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=21 ;
+  KEY `user_ID` (`sender_id`),
+  KEY `object_ID` (`item_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=58 ;
 
 --
 -- Dumping data for table `message`
 --
 
-INSERT INTO `message` (`id`, `item_uuid`, `sender_uuid`, `content`, `date`, `receiver_uuid`) VALUES
-(1, '42', '7', 'Bob', '2013-09-03 00:00:00', 'borrower'),
-(3, '42', '7', 'coucou', '2013-09-03 00:00:00', 'borrower'),
-(4, '42', '7', 'tu', '2013-09-03 00:00:00', 'lender'),
-(5, '42', '7', 'veux', '2013-09-03 00:00:00', 'borrower'),
-(6, '42', '7', 'voir', '2013-09-03 00:00:00', 'lender'),
-(7, '42', '2', 'ma bite ?', '2013-09-03 00:00:00', 'borrower'),
-(8, '25', '5', 'Bonjjo', '2013-09-16 00:00:00', 'lender'),
-(9, '25', '5', 'Allo ?', '2013-09-16 00:00:00', 'borrower'),
-(10, '25', '5', 'Enculé !', '2013-09-16 00:00:00', 'lender'),
-(11, '454', '5454', 'coucou', '2013-09-12 00:00:00', 'lender'),
-(12, '42', '3', 'cc tvvmb ?', '2013-09-12 00:00:00', 'lender'),
-(13, 'e5beba96-e68c-11e2-8b18-485b394e1431', 'yghujik', 'bonjour poney', '2013-09-16 00:00:00', 'cdc68c8d-e627-11e2-9aab-002170dd300a'),
-(14, 'fd81e820-e091-4b57-8229-7a1b8d013094', '919ec6c8-2962-48f7-b34a-4a458dd39056', 'ALLO ?', '2013-09-17 00:00:00', '53be87e4-0ff2-4c9d-8748-d066f2f04d03'),
-(15, 'fd81e820-e091-4b57-8229-7a1b8d013094', '919ec6c8-2962-48f7-b34a-4a458dd39056', 'ALLO, NON MAIS ALLO QUOI ?!', '2013-09-17 00:00:00', '53be87e4-0ff2-4c9d-8748-d066f2f04d03'),
-(16, 'fd81e820-e091-4b57-8229-7a1b8d013094', '53be87e4-0ff2-4c9d-8748-d066f2f04d03', 'kikoulol', '2013-09-26 13:26:48', '919ec6c8-2962-48f7-b34a-4a458dd39056'),
-(17, 'fd81e820-e091-4b57-8229-7a1b8d013094', '53be87e4-0ff2-4c9d-8748-d066f2f04d03', 'grawaaak', '2013-09-26 13:30:32', '919ec6c8-2962-48f7-b34a-4a458dd39056'),
-(18, '25eb49a9-af35-4fe2-a2c7-d0cfdff90263', 'e6dcc7ac-66a6-4f15-ad81-20272a7b7954', 'Coucou ! Tu veux voir ma Bite ?', '2013-09-27 13:49:30', 'e6dcc7ac-66a6-4f15-ad81-20272a7b7954'),
-(19, '25eb49a9-af35-4fe2-a2c7-d0cfdff90263', 'e6dcc7ac-66a6-4f15-ad81-20272a7b7954', 'mouahaha', '2013-09-27 13:49:44', 'e6dcc7ac-66a6-4f15-ad81-20272a7b7954'),
-(20, '25eb49a9-af35-4fe2-a2c7-d0cfdff90263', 'e6dcc7ac-66a6-4f15-ad81-20272a7b7954', 'Poney', '2013-09-27 13:49:54', 'e6dcc7ac-66a6-4f15-ad81-20272a7b7954');
+INSERT INTO `message` (`id`, `item_id`, `sender_id`, `content`, `date`, `receiver_id`) VALUES
+(25, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee', 'Bonjour monsieur.', '2013-10-29 13:53:20', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1'),
+(26, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1', 'Bonjour !', '2013-10-29 16:06:10', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee'),
+(27, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee', 'Merci de me répondre, comment allez vous ?', '2013-10-29 16:06:31', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1'),
+(28, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee', 'S''il vous plait, aidez moi !!!!', '2013-10-29 17:01:10', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1'),
+(29, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1', 'Du calme, du calme. Que puis-je faire pour vous ?', '2013-10-29 19:34:50', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee'),
+(30, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee', 'Bonjour !', '2013-10-30 09:10:23', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1'),
+(31, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1', 'Ah !!!!!', '2013-10-30 09:14:29', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee'),
+(32, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee', 'Quoi ?', '2013-10-30 09:14:46', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1'),
+(33, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee', 'Raiponder cil vou pez', '2013-10-30 09:52:38', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1'),
+(34, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1', '...', '2013-10-30 09:52:56', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee'),
+(35, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1', 'go pve noob', '2013-10-30 09:53:10', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee'),
+(36, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1', 'sale gamin !!', '2013-10-30 10:20:37', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee'),
+(37, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1', 'tocard', '2013-10-30 10:20:47', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee'),
+(38, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1', 'espèce de merde !', '2013-10-30 10:24:01', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee'),
+(39, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1', 'boulet', '2013-10-30 10:24:44', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee'),
+(40, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee', 'Maieuh', '2013-10-30 10:24:55', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1'),
+(41, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee', 'Batard', '2013-10-30 10:26:50', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1'),
+(42, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1', 'Pute', '2013-10-30 10:27:23', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee'),
+(43, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee', 'Say pas ganti de ce moquer dé enfents', '2013-10-30 11:48:21', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1'),
+(44, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1', 'Je t''emmerde, t''es qu''un tocard, je vais te report', '2013-10-30 11:48:39', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee'),
+(45, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee', 'NOOOOOOOOOOOOOOOOON ! :''(', '2013-10-30 11:49:17', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1'),
+(46, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee', 'Pourkuoi', '2013-10-30 11:49:38', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1'),
+(47, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee', 'Fait pas sa sil te plé', '2013-10-30 11:49:49', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1'),
+(48, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee', 'je sui genti en vré', '2013-10-30 11:50:04', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1'),
+(49, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee', 'DONT DO THIS   ! BITCH MOZAFUKA', '2013-10-30 11:50:25', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1'),
+(50, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee', 'e', '2013-10-30 11:50:31', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1'),
+(51, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee', 'e', '2013-10-30 11:50:34', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1'),
+(52, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee', 'e', '2013-10-30 11:50:36', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1'),
+(53, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee', 'e', '2013-10-30 11:50:39', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1'),
+(54, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee', 'feeder ! report noob !', '2013-10-31 12:56:02', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1'),
+(55, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee', '4456', '2013-10-31 12:56:39', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1'),
+(56, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee', 'pf !!!', '2013-10-31 12:56:44', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1'),
+(57, '13437057-3a3d-4c04-9775-ef3b7baa0a49', 'aea5637c-12cc-47d3-b8ab-f457c23e43ee', 'TF imba !', '2013-10-31 12:56:49', 'd61a183e-c90e-4df9-ad8e-1ce4cdf215a1');
 
 -- --------------------------------------------------------
 
@@ -211,6 +225,7 @@ CREATE TABLE IF NOT EXISTS `user` (
 --
 
 INSERT INTO `user` (`id`, `login`, `name`, `password`, `city`, `tel`) VALUES
+('aea5637c-12cc-47d3-b8ab-f457c23e43ee', 'poney@poney.fr', 'PoneyLand', '99fb2f48c6af4761f904fc85f95eb56190e5d40b1f44ec3a9c1fa319', 'Chatenay-Malabry', '0621461111'),
 ('d61a183e-c90e-4df9-ad8e-1ce4cdf215a1', 'stymaar@stymaar.fr', 'StyMaar', 'f85f7bc6173a294737b1f8d6544d6fbc0f6c85b8a6e34ba49110d35c', 'Chatenay-Malabry', '06-21-46-11-11');
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

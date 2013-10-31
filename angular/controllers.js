@@ -34,7 +34,7 @@ angular.module('controllers', ['racletteModules']).
 				$location.replace();
 			}).error(function(data, status, headers) {
 				$scope.hiddenMessage = false;
-				$scope.errorMessages = "Connexion impossible, veuillez réessayer.";
+				$scope.errorMessages = ["Connexion impossible, veuillez réessayer."];
 			});
 		}
 	}]).
@@ -91,9 +91,10 @@ angular.module('controllers', ['racletteModules']).
 			});
 		}
 	}]).
-	controller('dashboardCtrl', ['$scope','$http','$location','LoginManager', function($scope,$http,$location,LoginManager) {
+	controller('dashboardCtrl', ['$scope','$http','$location','LoginManager','NotifManager', function($scope,$http,$location,LoginManager,NotifManager) {
 		$scope.connected = false;
 		LoginManager.checkLogin(function(){
+			NotifManager($scope);
 			$scope.connected = true;
 			$http.get('users/my').success(function(data) {
 				$scope.name = data.name;
@@ -275,6 +276,20 @@ angular.module('controllers', ['racletteModules']).
 			$scope.errorMessage = "Aucun objet trouvé autour de chez vous dans cette catégorie";
 		});	
 	}]).
+	controller('recherche_nomCtrl', ['$scope','$http','$routeParams','$timeout', function($scope,$http,$routeParams,$timeout) {
+		$scope.hiddenMessage = true;
+		$scope.errorMessage = "";
+		$scope.keyword = $routeParams.keyword;
+		$http.get('/items/keyword/'+$scope.keyword).success(function(data) {				
+			$scope.item_list = data;
+		}).
+		error(function(data, status){
+			console.log(data);
+			console.log(status);
+			$scope.hiddenMessage = false;
+			$scope.errorMessage = "Aucun objet trouvé autour de chez vous pour ces mots clés";
+		});	
+	}]).
 	controller('detail_objetCtrl', ['$scope','$http','$routeParams','$location', function($scope,$http,$routeParams,$location) {
 		$scope.hiddenMessage = true;
 		$scope.errorMessage = "";
@@ -298,16 +313,33 @@ angular.module('controllers', ['racletteModules']).
 			},2500);
 		});
 	}]).
-	controller('detail_conversationCtrl', ['$scope','$http','$routeParams','LoginManager','$location','$timeout', function($scope,$http,$routeParams,LoginManager,$location,$timeout) {
+	controller('detail_conversationCtrl', ['$scope','$http','$routeParams','LoginManager','$location','$timeout','$window', function($scope,$http,$routeParams,LoginManager,$location,$timeout,$window) {
 		$scope.hiddenMessage = true;
 		$scope.errorMessage = "";
 		$scope.itemId = $routeParams.itemId;
 		$scope.contactId = $routeParams.contactId;
+		
+		function checkNewMsg(){
+			console.log("cnm called");
+			var t = Date.now();
+			$http.get('/waitMessage/'+$scope.itemId+'/'+$scope.contactId).success(function(data) {				
+				$scope.messages_list.push(data);
+				checkNewMsg();
+			}).
+			error(function(a,b,c){
+				console.log(a);
+				console.log(b);
+				console.log(c);
+				checkNewMsg();
+			});
+		}
+
 		LoginManager.checkLogin(function(){	
 			$http.get('/messages/'+$scope.itemId+'/'+$scope.contactId).success(function(data) {				
 				$scope.nom_objet = data.nom_objet;
-				$scope.contact = data.nom_contact;
+				$scope.nom_contact = data.nom_contact;
 				$scope.messages_list = data.messages_list;
+				checkNewMsg();
 			}).
 			error(function(){
 				$scope.hiddenMessage = false;

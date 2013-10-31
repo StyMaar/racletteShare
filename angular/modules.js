@@ -44,5 +44,26 @@ angular.module('racletteModules', [])
 			$window.racletteLogged_in = true;
 		};
 		return LM;
+	}]).factory('NotifManager',['$http',function($http){
+		var NM = function(scope){
+			function checkNotifs(){
+				console.log("cnm called");
+				var t = Date.now();
+				$http.get('/notifs').success(function(data) {				
+					if(scope.notifications){
+						scope.notifications++;
+					}else{
+						scope.notifications = 1;
+					}
+					checkNotifs();
+				}).
+				error(function(a,b,c){
+					checkNotifs();
+				});
+			}
+			return checkNotifs();
+		};
+
+		return NM;
 	}]);
 

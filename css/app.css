@@ -293,6 +293,24 @@ section {
 	}
 }
 
+.onePicList li{
+	border: 2px inset #ccc;
+	-webkit-border-radius: 4px;
+	-ms-border-radius: 4px;
+	border-radius: 4px;
+	margin: 5px 0px;
+	padding:10px;
+}
+
+.onePicList .pic {
+	float:left;
+}
+
+.onePicList img {
+	width: 50px;
+}
+
+
 /*
 	spécificités de la page connexion
 */
@@ -322,7 +340,7 @@ article:last-child{
 	display:inline-block;
 }
 
-#dashboardHeader #profileSummary span {
+#dashboardHeader #profileSummary #myName {
 	font-size:0.8em;
 	display:inline-block;
 	position:relative;
@@ -428,22 +446,7 @@ article:last-child{
 	cursor:pointer;
 }
 
-#mes_objets .onePicList li{
-	border: 2px inset #ccc;
-	-webkit-border-radius: 4px;
-	-ms-border-radius: 4px;
-	border-radius: 4px;
-	margin: 5px 0px;
-	padding:10px;
-}
 
-#mes_objets .onePicList .pic {
-	float:left;
-}
-
-#mes_objets .onePicList img {
-	width: 50px;
-}
 
 /*
 	spécificité des pages nouvel_objet et edit_objet
@@ -482,26 +485,9 @@ article:last-child{
 	spécificité de la page de recherche_category
 */
 
-#recherche_category .iconDelete{
-	cursor:pointer;
-}
-
-#recherche_category .onePicList li{
-	border: 2px inset #ccc;
-	-webkit-border-radius: 4px;
-	-ms-border-radius: 4px;
-	border-radius: 4px;
-	margin: 5px 0px;
-	padding:10px;
-}
-
-#recherche_category .onePicList .pic {
-	float:left;
-}
-
-#recherche_category .onePicList img {
-	width: 50px;
-}
+/*
+	spécificité de la page de recherche_nom
+*/
 
 /*
 	spécificité de la page de détail_objet
@@ -549,16 +535,8 @@ article:last-child{
 	border:none;
 }
 
-#detail_conversation .onePicList .other .pic {
-	float:left;
-}
-
 #detail_conversation .onePicList .me .pic {
 	float:right;
-}
-
-#detail_conversation .onePicList img {
-	width: 50px;
 }
 
 #detail_conversation textarea {

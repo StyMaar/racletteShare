@@ -1,11 +1,11 @@
 <header class="topBar bois">
 	<a href="#/"><i class="iconHome"></i></a>
-	<h3><i class="iconSearch"></i> Recherche : {{category}}</h3>
+	<h3><i class="iconSearch"></i> Recherche : {{keyword}}</h3>
 </header>
 <div ng-hide="hiddenMessage" class="errorMessage">
 	{{errorMessage}}
 </div>
-<section id="recherche_category">
+<section id="recherche_nom">
 	<ul class="unstyled onePicList">
 		<li ng-repeat="item in item_list">
 			<a class="pic" href="#/items/detail/{{item.id}}">
