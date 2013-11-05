@@ -124,13 +124,13 @@ input, select, textarea{
     font-size: 12px;
     font-weight: bold;
     line-height: 1;
-    color: rgb(253, 23, 0);
-    background-color: rgb(153, 153, 153);
+    color: rgb(255, 255, 120);
+    background-color: rgb(253, 23, 53);
     border-radius: 10px 10px 10px 10px;
 }
 
 .badge:empty { /*On n'affiche pas le badge s'il n'y a rien dedans*/
-    display: none;
+    display: none !important;
 }
 
 .muted {

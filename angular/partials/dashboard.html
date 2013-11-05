@@ -2,7 +2,7 @@
 	<a href="#/connexion" id="connexionButton" ng-hide="connected">Connectez-vous !</a>
 	<a id="profileSummary" ng-hide="!connected" href="#/users/my">
 		<img ng-src="users/pictures/my" alt="ma photo"/>
-		<span id="myName">{{name}}</span><a class="badge notification" href="/messages/conversations">{{notifications}}</span>
+		<span id="myName">{{name}}</span><a class="badge" href="/messages/conversations">{{notifications}}</span>
 	</a>
 	<span ng-hide="!connected" id="deconnexionButton" ng-click="deconnexionClick()"><i class="iconExit"></i></span>
 </header>

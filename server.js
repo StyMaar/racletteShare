@@ -814,6 +814,7 @@ app.get("/messages/:itemId/:contactId",function(req,res){
 		async.parallel([getConversationDetail(itemId,contactId), getMessagesList(itemId,contactId,req.session.user_id)],function(err,results){
 			if(kutils.checkError(err,res)){
 				var convDetails = results[0];
+				markAsRead(req.session.user_id,contactId,itemId);
 				convDetails.messages_list= results[1];
 				res.contentType('application/json');
 				res.send(JSON.stringify(convDetails));
@@ -910,10 +911,10 @@ app.post("/messages/:itemId/:contactId",function(req,res){
 						type:"message",
 						contact:req.session.user_id
 					}
-					addToUnread(contactId,req.session.user_id);
+					addToUnread(contactId,req.session.user_id,itemId);
 					notifier.emit(contactId,notif);
 				}else{ //sinon on ajoute juste ça à la liste de ces messages non lu
-					addToUnread(contactId,req.session.user_id);
+					addToUnread(contactId,req.session.user_id,itemId);
 				}
 				kutils.ok(res);
 			}
@@ -948,13 +949,17 @@ SELECT ?, ?, ?, NOW(), ? FROM item WHERE id = ? AND (user_id = ? OR user_id = ?)
 
 app.get("/messages/conversations",function(req,res){
 	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
+		var myId = req.session.user_id;
 		//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
-		async.parallel([getConversationsList(req.session.user_id)],function(err,results){
-			if(kutils.checkError(err,res)){
-				var convList = results[0];
-				res.contentType('application/json');
-				res.send(JSON.stringify(convList));
-			}
+		async.parallel([getConversationsList(myId)],function(err,results){
+			var convList = !err?results[0]:null;
+			listUnread(err,myId,convList,function(err,cL){
+				if(kutils.checkError(err,res)){
+					res.contentType('application/json');
+					res.send(JSON.stringify(cL));
+				}
+			});
+			
 		});
 	}else{
 		kutils.forbiden(res);
@@ -1046,22 +1051,95 @@ app.get("/notifs",function(req,res){
 	}
 });
 
-function addToUnread(destinataire,expediteur){
-	console.log("fonction pas encore implémentée");
+/* 
+
+Gestion des messages non-lus : 
+les messages non lus sont stocké dans redis en 3 parties :
+"message" + monId => nombre de messages non lus;
+monId => [liste,des,conversations,qui,ont,du,nouveau];
+monId:contactId:itemId => nombre de messages nons lus provenant de la conversation en question.
+
+sur le dashboard et n'importe quelle page : affiche le nombre de messages non lus
+sur la page mes_conversation : pour chacune des conversations de la liste de conversation, on affiche le nombre de messages non lus
+quand on va sur la page de la conversation, ça reset le nombre de message de la conversation en question + retire l'id de la conversation de la liste des conversations actives + diminue le nombre total de message non-lus d'autant.
+
+*/
+
+function errCB(p){
+	return function(err){
+		if(err){
+			console.log(p);
+			console.log(err);
+		}
+	}
 }
 
-app.get("/allo",function(req,res){
-	var eE = new EventEmitter();
-	eE.on('bob',function(){
-		console.log("BOB !");
+function addToUnread(destinataire,expediteur,itemId){
+	redis.incr("message"+destinataire,function(){
+		console.log("message send to "+destinataire);
 	});
-	console.log(eE.listeners('bob'));
-	eE.removeAllListeners('bob');
-	eE.removeAllListeners('bob');
-	eE.removeAllListeners('bob');
-	console.log(eE.listeners('bob'));
-	res.send("toto");
+	redis.sadd(destinataire, destinataire+":"+expediteur+":"+itemId,errCB('sadd destinataire'));
+	redis.incr(destinataire+":"+expediteur+":"+itemId,errCB("incr des:exp:item"));
+}
+
+function markAsRead(destinataire,expediteur,itemId){
+	redis.get(destinataire+":"+expediteur+":"+itemId,function(err,n){
+		redis.set(destinataire+":"+expediteur+":"+itemId,0,errCB("set des:exp:item 0"));
+		redis.decrby("message"+destinataire,n,errCB("decrcr message+des "+n));
+	});
+	redis.srem(destinataire, destinataire+":"+expediteur+":"+itemId,errCB("srem destinataire"));
+}
+
+//récupère la liste des conversations actives avec leur nombre de message associé, puis lorsque tout est récupéré, execute le callback
+//le callback est une fonction qui prend une erreur et liste de conversation en paramètre
+function listUnread(erreur,destinataire,convList,callback){
+	if(erreur){
+		callback(erreur,convList);
+	}
+
+	//l'eventEmitter "attendre" est là pour s'assurer que tous les appels à redis ont renvoyé leur resultat avant d'executer le callback
+	var attendre = new EventEmitter();
+	attendre.effectue = 0;
+	attendre.callback = callback;
+	attendre.total = convList.length;
+	attendre.err = null;
+	
+	attendre.on("fini",function handler(err,convList){
+		if(err){
+			this.callback(err,convList);
+			this.removeListener("fini",handler);
+		}else{
+			this.effectue++;
+			if(this.effectue == this.total){
+				this.callback(err,convList);
+			}
+		}
+	});
+
+	//on parcourt la liste de conversation et on regarde s'il y a des messages non lus parmis cette liste.
+	for(var i =0;i<convList.length;i++){
+		var conv = convList[i];
+		redis.get(destinataire+":"+ conv.contact_id +":"+conv.item_id,function(err,n){
+			conv.unread = n;
+			attendre.emit("fini",err,convList);
+		});
+	}
+}
+
+app.get("/unread",function(req,res){
+	if(req.session.user_id){
+		var myId = req.session.user_id;
+		redis.get("message"+myId,function(err,msg){
+			if(kutils.checkError(err,res)){
+				res.contentType('application/json');
+				res.send(msg);
+			}
+		});
+	}else{
+		kutils.forbiden(res);
+	}
 });
+
 
 /////////////////////////////////////////////////////////////////////////
 
