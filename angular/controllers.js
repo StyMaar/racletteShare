@@ -154,6 +154,15 @@ angular.module('controllers', ['racletteModules']).
 
 			$window.updatePicture = function(elem) {
 				var file = elem.files[0]; //le fichier lui même
+				if(file.type !== "image/png"){
+					$scope.hiddenMessage = false;
+					$scope.errorMessage = "L'image doit être un fichier au format png";
+				}else if(file.size>5000000){
+					$scope.hiddenMessage = false;
+					$scope.errorMessage = "L'image est trop grande. Veuillez réessayer avec un fichier plus petit.";
+				}else{
+					$scope.hiddenMessage = true;
+				}
 				var reader = new FileReader();
 				// Closure to capture the file information.
 				reader.onload = (function(theFile,element) {
