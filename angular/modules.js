@@ -27,6 +27,19 @@ angular.module('racletteModules', [])
 					$window.racletteLogged_in = true;
 					return logged();
 				}).error(function(){
+					if(notlogged){
+						//si le 2ème paramètre est une fonction , on l'execute
+						if(typeof notlogged === "function"){
+							return notlogged();
+						}else{
+							//sinon on effectue une redirection demandant de se connecter
+							// TODO : faire un page spéciale, avec un message d'erreur et une redirection vers la page sur laquelle on était au moment ou on a été redirigé
+							$location.path("/connexion");
+							$location.replace();
+						}
+					}else{
+						return; //si jamais il n'y a pas de 2ème paramètre, alors on ne fait rien.
+					}
 					return notlogged();
 				});
 			}
@@ -58,7 +71,6 @@ angular.module('racletteModules', [])
 			var current = 0;
 			function checkNotifs(){
 				console.log("cnm called");
-				var t = Date.now();
 				$http.get('/notifs').success(function(data) {				
 					if(scope.notifications){
 						scope.notifications++;

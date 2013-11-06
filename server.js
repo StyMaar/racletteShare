@@ -904,6 +904,7 @@ app.post("/messages/:itemId/:contactId",function(req,res){
 					content:req.body.message,
 					date:(new Date()).toISOString()
 				};
+				
 				if(notifier.listeners(eventString).length != 0){ //si le contact est en ligne avec nous, on lui envoie directement la réponse
 					notifier.emit(eventString,msg);
 				}else if(notifier.listeners(contactId).length != 0){ //si il est connecté mais pas en train de parler avec nous, on lui envoie une notification et on ajoute ça a la liste des messages non-lus
@@ -1038,9 +1039,8 @@ app.get("/notifs",function(req,res){
 		var myId = req.session.user_id;
 		var eventString = myId;
 		var evtCb = longPollResponse(res);
-
+		
 		notifier.on(eventString, evtCb); //on s'abonne aux notifications concernant mon identifiant
-
 		function rmListener(){
 			notifier.removeListener(eventString, evtCb);	
 		}
@@ -1076,7 +1076,7 @@ function errCB(p){
 
 function addToUnread(destinataire,expediteur,itemId){
 	redis.incr("message"+destinataire,function(){
-		console.log("message send to "+destinataire);
+		console.log("add a new unread message to :"+destinataire);
 	});
 	redis.sadd(destinataire, destinataire+":"+expediteur+":"+itemId,errCB('sadd destinataire'));
 	redis.incr(destinataire+":"+expediteur+":"+itemId,errCB("incr des:exp:item"));

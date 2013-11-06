@@ -7,4 +7,12 @@ angular.module('Filtres', []).filter('date', function() {
     var d = new Date(input);
 	return d.toLocaleString();
   };
+}).filter('zeroIsNull', function() {
+  return function(input) {
+    if(input==0){
+		return null;
+	}else{
+		return input;
+	}
+  };
 });

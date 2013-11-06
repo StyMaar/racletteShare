@@ -91,7 +91,7 @@ angular.module('controllers', ['racletteModules']).
 			});
 		}
 	}]).
-	controller('dashboardCtrl', ['$scope','$http','$location','LoginManager','NotifManager', function($scope,$http,$location,LoginManager,NotifManager) {
+	controller('dashboardCtrl', ['$scope','$http','LoginManager','NotifManager', function($scope,$http,LoginManager,NotifManager) {
 		$scope.connected = false;
 		LoginManager.checkLogin(function(){
 			NotifManager($scope);
@@ -100,23 +100,25 @@ angular.module('controllers', ['racletteModules']).
 				$scope.name = data.name;
 			});
 			$scope.deconnexionClick = LoginManager.disconnect;
-		},function(){
-			//ce qu'on doit faire si jamais on n'est pas connecté
-		});
+		});//si on n'est pas connecté, il ne se passe rien
 		$http.get('/categories').success(function(data) {
 			$scope.categories = data;
 		});
 	}]).
-	controller('mon_profilCtrl', ['$scope','$http','$location','LoginManager', function($scope,$http,$location,LoginManager) {
-		$http.get('users/my').success(function(data) {
-			$scope.name = data.name;
-			$scope.city = data.city;
-		})
+	controller('mon_profilCtrl', ['$scope','$http','LoginManager','NotifManager', function($scope,$http,LoginManager,NotifManager) {
+		LoginManager.checkLogin(function(){
+			NotifManager($scope);
+			$http.get('users/my').success(function(data) {
+				$scope.name = data.name;
+				$scope.city = data.city;
+			})
+		},true);
 	}]).
-	controller('mes_objetsCtrl', ['$scope','$http','$location','LoginManager', function($scope,$http,$location,LoginManager) {
+	controller('mes_objetsCtrl', ['$scope','$http','LoginManager','NotifManager', function($scope,$http,LoginManager,NotifManager) {
 		$scope.hiddenMessage = true;
 		$scope.errorMessage = "";
 		LoginManager.checkLogin(function(){
+			NotifManager($scope);
 			$http.get('items/my').success(function(data) {
 				$scope.item_list=data;
 				if(!data || data.length==0){
@@ -133,19 +135,16 @@ angular.module('controllers', ['racletteModules']).
 					$scope.errorMessage = "Echec de la suppression de l'élement. Veuillez réessayer."
 				});
 			}			
-		},function(){
-			$location.path("/connexion");
-			$location.replace();
-		});
+		},true);
 	}]).
-	controller('nouvel_objetCtrl', ['$scope','$http','$location','$window','LoginManager', function($scope,$http,$location,$window,LoginManager) {
+	controller('nouvel_objetCtrl', ['$scope','$http','$location','$window','LoginManager','NotifManager', function($scope, $http, $location, $window, LoginManager, NotifManager) {
 		$scope.hiddenMessage = true;
 		$scope.errorMessage = "";
 		LoginManager.checkLogin(function(){	
 			$http.get('/categories').success(function(data) {
 				$scope.categories = data;
 			});
-
+			NotifManager($scope);
 			$scope.file = null;
 			$scope.nom_objet="";
 			$scope.category="";
@@ -218,17 +217,15 @@ angular.module('controllers', ['racletteModules']).
 					$scope.errorMessage = "Echec de la création de l'objet. Veuillez réessayer.";
 				});
 			};
-		},function(){
-			$location.path("/connexion");
-			$location.replace();
-		});
+		},true);
 		
 	}]).
-	controller('edit_objetCtrl', ['$scope','$http','$location','$routeParams','$timeout','LoginManager', function($scope,$http,$location,$routeParams,$timeout, LoginManager) {
+	controller('edit_objetCtrl', ['$scope','$http','$location','$routeParams','$timeout','LoginManager','NotifManager', function($scope,$http,$location,$routeParams,$timeout, LoginManager, NotifManager) {
 		$scope.hiddenMessage = true;
 		$scope.errorMessage = "";
 		$scope.itemId = $routeParams.itemId;
-		LoginManager.checkLogin(function(){	
+		LoginManager.checkLogin(function(){
+			NotifManager($scope);
 			$http.get('/categories').success(function(data) {
 				$scope.categories = data;
 			});
@@ -265,13 +262,13 @@ angular.module('controllers', ['racletteModules']).
 					$scope.errorMessage = "Echec de la mise à jour de l'objet. Veuillez réessayer.";
 				});
 			};
-		},function(){
-			$location.path("/connexion");
-			$location.replace();
-		});
+		},true);
 		
 	}]).
-	controller('recherche_categoryCtrl', ['$scope','$http','$routeParams','$timeout', function($scope,$http,$routeParams,$timeout) {
+	controller('recherche_categoryCtrl', ['$scope','$http','$routeParams','$timeout','LoginManager','NotifManager', function($scope,$http,$routeParams,$timeout, LoginManager, NotifManager) {
+		LoginManager.checkLogin(function(){
+			NotifManager($scope);
+		});			
 		$scope.hiddenMessage = true;
 		$scope.errorMessage = "";
 		$scope.category = $routeParams.category;
@@ -285,7 +282,10 @@ angular.module('controllers', ['racletteModules']).
 			$scope.errorMessage = "Aucun objet trouvé autour de chez vous dans cette catégorie";
 		});	
 	}]).
-	controller('recherche_nomCtrl', ['$scope','$http','$routeParams','$timeout', function($scope,$http,$routeParams,$timeout) {
+	controller('recherche_nomCtrl', ['$scope','$http','$routeParams','$timeout','LoginManager','NotifManager', function($scope,$http,$routeParams,$timeout, LoginManager, NotifManager) {
+		LoginManager.checkLogin(function(){
+			NotifManager($scope);
+		});			
 		$scope.hiddenMessage = true;
 		$scope.errorMessage = "";
 		$scope.keyword = $routeParams.keyword;
@@ -299,7 +299,10 @@ angular.module('controllers', ['racletteModules']).
 			$scope.errorMessage = "Aucun objet trouvé autour de chez vous pour ces mots clés";
 		});	
 	}]).
-	controller('detail_objetCtrl', ['$scope','$http','$routeParams','$location', function($scope,$http,$routeParams,$location) {
+	controller('detail_objetCtrl', ['$scope','$http','$routeParams','$location','LoginManager','NotifManager', function($scope,$http,$routeParams,$location, LoginManager, NotifManager) {
+		LoginManager.checkLogin(function(){
+			NotifManager($scope);
+		});			
 		$scope.hiddenMessage = true;
 		$scope.errorMessage = "";
 		$scope.itemId = $routeParams.itemId;
@@ -322,28 +325,30 @@ angular.module('controllers', ['racletteModules']).
 			},2500);
 		});
 	}]).
-	controller('detail_conversationCtrl', ['$scope','$http','$routeParams','LoginManager','$location','$timeout','$window', function($scope,$http,$routeParams,LoginManager,$location,$timeout,$window) {
+	controller('detail_conversationCtrl', ['$scope','$http','$routeParams','LoginManager','$location','$timeout','$window','NotifManager', function($scope,$http,$routeParams,LoginManager,$location,$timeout,$window, NotifManager) {
 		$scope.hiddenMessage = true;
 		$scope.errorMessage = "";
 		$scope.itemId = $routeParams.itemId;
 		$scope.contactId = $routeParams.contactId;
-		
+		var limit = 25; //pour éviter les explosions du navigateur (chrome en fait) si jamais il y a une erreur au niveau du serveur ou de la connexion, on limite à 25 le nombre de tentative en erreur.
+		var current = 0;
 		function checkNewMsg(){
 			console.log("cnm called");
-			var t = Date.now();
 			$http.get('/waitMessage/'+$scope.itemId+'/'+$scope.contactId).success(function(data) {				
 				$scope.messages_list.push(data);
+				current=0;
 				checkNewMsg();
 			}).
 			error(function(a,b,c){
-				console.log(a);
-				console.log(b);
-				console.log(c);
-				checkNewMsg();
+				current++;
+				if(current<limit){
+					checkNewMsg();
+				}
 			});
 		}
 
-		LoginManager.checkLogin(function(){	
+		LoginManager.checkLogin(function(){
+			NotifManager($scope);	
 			$http.get('/messages/'+$scope.itemId+'/'+$scope.contactId).success(function(data) {				
 				$scope.nom_objet = data.nom_objet;
 				$scope.nom_contact = data.nom_contact;
@@ -383,15 +388,12 @@ angular.module('controllers', ['racletteModules']).
 				});
 			}
 
-		},function(){
-			$location.path("/connexion");
-			$location.replace();
-		});
+		},true);
 	}]).
 	controller('mes_conversationsCtrl', ['$scope','$http','$routeParams','LoginManager','$location','$timeout', function($scope,$http,$routeParams,LoginManager,$location,$timeout) {
 		$scope.hiddenMessage = true;
 		$scope.errorMessage = "";
-		LoginManager.checkLogin(function(){	
+		LoginManager.checkLogin(function(){
 			$http.get('/messages/conversations').success(function(data) {				
 				$scope.liste_conversations = data;
 			}).
@@ -403,10 +405,7 @@ angular.module('controllers', ['racletteModules']).
 					$location.replace();
 				},2500);
 			});
-		},function(){
-			$location.path("/connexion");
-			$location.replace();
-		});
+		},true);
 	}]);
 
 
