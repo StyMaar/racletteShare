@@ -9,7 +9,8 @@
     "node-uuid":"x",
 	"validator":"x",
 	"redis":"x",
-	"connect-redis":"x"
+	"connect-redis":"x",
+	"imagemagick":"x"
   }
 }
 

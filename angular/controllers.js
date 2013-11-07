@@ -140,6 +140,8 @@ angular.module('controllers', ['racletteModules']).
 	controller('nouvel_objetCtrl', ['$scope','$http','$location','$window','LoginManager','NotifManager', function($scope, $http, $location, $window, LoginManager, NotifManager) {
 		$scope.hiddenMessage = true;
 		$scope.errorMessage = "";
+		$scope.hiddenWarning = true;
+		$scope.warningMessage = "";
 		LoginManager.checkLogin(function(){	
 			$http.get('/categories').success(function(data) {
 				$scope.categories = data;
@@ -153,10 +155,7 @@ angular.module('controllers', ['racletteModules']).
 
 			$window.updatePicture = function(elem) {
 				var file = elem.files[0]; //le fichier lui même
-				if(file.type !== "image/png"){
-					$scope.hiddenMessage = false;
-					$scope.errorMessage = "L'image doit être un fichier au format png";
-				}else if(file.size>5000000){
+				if(file.size>5000000){
 					$scope.hiddenMessage = false;
 					$scope.errorMessage = "L'image est trop grande. Veuillez réessayer avec un fichier plus petit.";
 				}else{
@@ -176,7 +175,10 @@ angular.module('controllers', ['racletteModules']).
 		  		reader.readAsDataURL(file);
 			}
 
-			$scope.submit = function(){
+			$scope.submit = function submission(){
+				$scope.hiddenWarning = false;
+				$scope.warningMessage = "Transfert de la photo en cours, veuillez patienter.";
+				$scope.submit = function(){}; //on neutralise le bouton submit pendant le temps que ça charche
 				$http({
 				    method: 'POST',
 				    url: "/items",
@@ -213,6 +215,9 @@ angular.module('controllers', ['racletteModules']).
 					$location.replace();
 				}).
 				error(function (data, status, headers, config) {
+					$scope.submit = submission;
+					$scope.hiddenWarning = true;
+					$scope.warningMessage = "";
 					$scope.hiddenMessage = false;
 					$scope.errorMessage = "Echec de la création de l'objet. Veuillez réessayer.";
 				});

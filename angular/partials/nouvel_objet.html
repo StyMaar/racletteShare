@@ -6,10 +6,13 @@
 <div ng-hide="hiddenMessage" class="errorMessage">
 	{{errorMessage}}
 </div>
+<div ng-hide="hiddenWarning" class="warningMessage">
+	{{warningMessage}}
+</div>
 <section id="nouvel_objet">
 	<form ng-submit="submit()">
 		<div id="imgDiv">		
-			<input type="file" accept="image/png" name="photo" required="required" capture="camera" autofocus="autofocus" onchange="updatePicture(this)"/>
+			<input type="file" accept="image/*" name="photo" required="required" capture="camera" autofocus="autofocus" onchange="updatePicture(this)"/>
 			<!-- Angular ne gère pas les input de type file, du coup je fais tout en JavaScript maison -->
 			<img ng-src="{{imgB64}}" title="{{imgName}}"/>
 		</div>

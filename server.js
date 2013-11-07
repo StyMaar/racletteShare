@@ -16,6 +16,8 @@ var EventEmitter = require('events').EventEmitter;
 var RedisStore = require("connect-redis")(express);
 var redis = require("redis").createClient();
 
+var imagemagick = require('imagemagick');
+
 var app = express();
 
 //permet l'utilisation des sessions dans l'application
@@ -42,9 +44,8 @@ app.use(express.session({
 
 //pour lire le contenu d'une requête post ou PUT
 app.use(express.bodyParser({
-	uploadDir:__dirname+"/pictures",
-	keepExtensions:true
-})); // TODO utiliser  => express.json() à la place, et formidable juste pour le transfert de fichier quand j'en ai vraiment besoin /!\ Sinon, ça active formidable, qui va autoriser bêtement tout transfert de fichier sur le serveur quelque soit l'url qui lui est passé ... Du crackage total !!!
+	uploadDir:__dirname+"/pictures"
+})); // TODO utiliser  => express.json() à la place, et formidable juste pour le transfert de fichier quand j'en ai vraiment besoin /!\ Sinon, ça active formidable, qui va autoriser bêtement tout transfert de fichier sur le serveur quelque soit l'url qui lui est passé ... Du crackage total !!! Les mecs de connect s'en sont apperçu et du coup ils vont virer cette features : il faudra faire du formmidable à la main quand on en a besoin à partir de connect 3.0
 
 
 //pour les demandes de fichier statiques, sauf le index.html
@@ -163,9 +164,29 @@ app.get('/items/pictures/:itemId', function (req, res) {
 	}
 });
 
+//traitement des miniatures des objets 
+app.get('/items/minipic/:itemId', function (req, res) {
+	try {
+		check(req.params.itemId).isUUIDv4();
+	} catch (e){
+		kutils.badRequest(res);
+		return;
+	}
+	try{
+		res.sendfile(getMiniPicPathFromId(req.params.itemId));
+	}catch(e){
+		console.log(e);
+		res.sendfile(__dirname + '/pictures/pot.png');
+	}
+});
+
 function getPicturePathFromId(itemId){
-	return __dirname + '/pictures/'+itemId+'.png'
+	return __dirname + '/pictures/big/'+itemId+'.jpg'
 };
+
+function getMiniPicPathFromId(itemId){
+	return __dirname + '/pictures/mini/'+itemId+'.jpg'
+}
 
 /*
 app.get('/items/pictures/:itemId', function (req, res) {
@@ -461,6 +482,7 @@ app.delete("/items/detail/:itemId",function(req,res){
 			if(kutils.checkError(err,res)){
 				kutils.ok(res);
 				deleteFile(getPicturePathFromId(itemId));
+				deleteFile(getMiniPicPathFromId(itemId));
 			}
 		});
 	}else{
@@ -493,6 +515,7 @@ function deleteItem(userId, itemId){
 
 /*================================================
 	Nouvel objet
+	TODO : Pour l'instant, je fais d'abord l'inscription en base puis les opérations sur les photos, ce n'ets absolument pas optimal ni cas cas de perf ni en cas d'erreur survenant au milieu de l'opération, mais pour l'instant c'est comme ça.
 ==================================================*/
 
 app.post("/items",function(req,res){
@@ -503,7 +526,7 @@ app.post("/items",function(req,res){
 			check(photo.size).isInt();
 			check(photo.path).notNull();
 			if(photo.size>5000000){ throw new Exception()};
-			check(photo.headers['content-type']).is(/^image\/png/);
+			check(photo.headers['content-type']).is(/^image\.*/);
 			check(req.body.nom_objet).len(3,64);
 			if(req.body.description){ //si une description est renseignée, on s'assure que c'est bien une description
 				check(req.body.description).len(0,255);
@@ -522,11 +545,8 @@ app.post("/items",function(req,res){
 		async.parallel([newItem(req.session.user_id, req.body)],function(err,results){
 			if(kutils.checkError(err,res)){
 				var id = results[0];
-				//var itemPath = __dirname + '/pictures/' + id + extension;
-				var itemPath = getPicturePathFromId(id);
-				fs.rename(photo.path, itemPath, function (err) {
+				savePictures(photo.path, id, function (err) {
 					if(kutils.checkError(err,res)){
-						console.log('renamed complete :'+ itemPath);
 						kutils.ok(res);
 					}
 				});
@@ -538,6 +558,37 @@ app.post("/items",function(req,res){
 		kutils.forbiden(res);
 	}
 });
+
+function savePictures(uploadPath,itemId,callback){
+	var itemPicPath = getPicturePathFromId(itemId);
+	var itemMiniPicPath = getMiniPicPathFromId(itemId);
+	var bigX=320;
+	var bigY=380;
+	var miniX =75;
+	var miniY =75;
+	
+	var bigDimensions = bigX+"x"+bigY;
+	var miniDimensions = miniX+"x"+miniY;
+	
+	async.parallel([
+		function(async_callback){
+			imagemagick.convert([uploadPath,'-resize', bigDimensions, itemPicPath], function(err, stdout){
+				console.log("grosse image crée pour l'item :"+itemId);
+				async_callback(err);
+			});
+		},
+		function(async_callback){
+			imagemagick.convert([uploadPath,'-resize', miniDimensions, itemMiniPicPath], function(err, stdout){
+				console.log("mini image crée pour l'item :"+itemId);
+				async_callback(err);
+			});
+		}
+	],
+	function(err, results) {
+		deleteFile(uploadPath);
+		callback(err);
+	});
+}
 
 function deleteFile(path){
 	fs.unlink(path, function (err) {
@@ -1092,6 +1143,7 @@ function markAsRead(destinataire,expediteur,itemId){
 
 //récupère la liste des conversations actives avec leur nombre de message associé, puis lorsque tout est récupéré, execute le callback
 //le callback est une fonction qui prend une erreur et liste de conversation en paramètre
+//TODO : async ça sert à ça aussi et c'est pas fait pour les chines, ça serait cool de l'utiliser pour avoir du code compréhenssible et cohérent ...
 function listUnread(erreur,destinataire,convList,callback){
 	if(erreur){
 		callback(erreur,convList);

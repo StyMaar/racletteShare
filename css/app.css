@@ -150,7 +150,13 @@ input, select, textarea{
 	background-color: rgb(249, 180, 178);
 	font-size:14px;
 }
-
+.warningMessage {
+	padding: 15px;
+	margin-bottom: 20px;
+	color: rgb(214, 5, 0);
+	background-color: rgb(244, 212, 97);
+	font-size:14px;
+}
 /*
 	Affichage un peut différent si les messages d'erreur sont dans une liste : ie, qu'il peut y avoir plusieurs erreurs simultanées sur la même page.
 */
@@ -308,11 +314,19 @@ section {
 }
 
 .onePicList .pic {
+	margin-right:15px;
+	line-height: 75px;
+	height: 75px;
 	float:left;
+	/*
+		ce qui suit je le met pour que tous les textes soient alignés quelque soit la largeur de l'image
+	*/
+	text-align: center;
+	width: 75px;
 }
 
 .onePicList img {
-	width: 50px;
+	vertical-align: middle;
 }
 
 
@@ -506,10 +520,6 @@ article:last-child{
 
 #detail_objet {
 	text-align:center;
-}
-
-#detail_objet img {
-	width:320px;
 }
 
 #detail_objet #description {
