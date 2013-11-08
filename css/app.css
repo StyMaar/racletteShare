@@ -231,6 +231,18 @@ li.errorMessage:last-child {
 														Style propre à RacletteShare
   											=================================================== */
 
+/*
+Pour le fallback pour les vieux IE
+*/
+
+#fallbackIE {
+	margin:50px auto;
+	width:50%;
+}
+#fallbackIE a {
+	color:rgb(0,135,245);;
+}
+
 body {
 	margin:0px;
 	background-image: url("../img/bckgrnd.png");

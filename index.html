@@ -3,18 +3,29 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="chrome=1" /> <!-- Balise pour autoriser l'application à s'executer avec Chrome frame -->
 	<title>Raclette Share : emprunte et prête à tes voisins</title>
  	<link rel="stylesheet" href="css/app.css"/>
 	<link href='http://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
 </head>
 <body>
 	<div ng-view>
+		<div id="fallbackIE">
+			<h1>Visiblement, votre navigateur n'est pas suporté. </h1>
+			<h4>Pour utiliser l'application vous pouvez :</h4>
+			<ul>
+				<li><a href="http://www.mozilla.org/fr/firefox/new/"/>Télécharger Mozilla Firefox (Recommandé)</a></li>
+				<li><a href="http://www.opera.com/fr/computer"/>Télécharger Opera</a></li>
+				<li><a href="http://www.google.com/intl/fr/chrome/browser/"/>Télécharger Google Chrome</a></li>
+				<li><a href="http://www.google.com/chromeframe?hl=fr&prefersystemlevel=true"/>Télécharger Google frame, une extension pour moderniser Internet Explorer (Si vous n'avez pas le droit d'installer un nouveau navigateur sur votre ordinateur)</a></li>
+			</ul>
+		</div>
 	</div>
 
-	<!-- In production use:
+
 	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
-	-->
-	<script src="libs_js/angular.js"></script>
+	
+	<!-- In production use:<script src="libs_js/angular.js"></script>-->
 	<script src="angular/app.js"></script>
 	<script src="angular/controllers.js"></script>
 	<script src="angular/modules.js"></script>
