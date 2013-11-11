@@ -176,6 +176,8 @@ angular.module('controllers', ['racletteModules']).
 			}
 
 			$scope.submit = function submission(){
+				$scope.hiddenMessage = true;
+				$scope.errorMessage = "";
 				$scope.hiddenWarning = false;
 				$scope.warningMessage = "Transfert de la photo en cours, veuillez patienter.";
 				$scope.submit = function(){}; //on neutralise le bouton submit pendant le temps que ça charche
