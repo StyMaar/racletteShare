@@ -28,10 +28,7 @@
 			</a>
 		</div>
 		<div class="search">
-			<input type="search" placeholder="Par catégorie" ng-model="searchParam2" list="categories">
-			<datalist id="categories">
-			  <option value="{{category}}" ng-repeat="category in categories">
-			</datalist> 
+			<select ng-model="category" ng-options="cat for cat in categories" ng-model="searchParam2"/></select>
 			<a href="#/items/category/{{searchParam2}}" class="bois">
 				<i class="iconSearch"></i>
 				<span> Rechercher </span>

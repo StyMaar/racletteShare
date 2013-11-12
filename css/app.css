@@ -410,7 +410,8 @@ article:last-child{
 	margin-bottom:10px;
 }
 
-#dashboard .search input {
+#dashboard .search input, #dashboard .search select {
+	height:35px;
 	width:100%;
 	padding-right:132px;
 	-moz-box-sizing:border-box;
