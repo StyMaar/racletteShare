@@ -188,50 +188,6 @@ function getMiniPicPathFromId(itemId){
 	return __dirname + '/pictures/mini/'+itemId+'.jpg'
 }
 
-/*
-app.get('/items/pictures/:itemId', function (req, res) {
-	try {
-		check(req.params.itemId).isUUIDv4();
-	} catch (e){
-		kutils.badRequest(res);
-		return;
-	}
-	async.parallel([getItemPictures(req.params.itemId)],function(err,result){
-		if(kutils.checkError(err,res)){
-			var path = result[0];
-			if(path){
-				res.sendfile(path);	
-			}else{
-				res.sendfile(__dirname + '/pictures/pot.png');
-			}					
-		}
-	});
-});
-
-function getItemPictures(itemId){
-	return function(callback){ 
-		pool.getConnection(function(err,connection){
-			//on s'assure que l'appel d'une connection dans le pool se passe bien.
-			if(err){
-				callback(err);
-				return;
-			}
-			connection.query('SELECT picturePath FROM item WHERE id =?', [itemId], function(err, rows) {
-				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-				var path = null;
-				if(!err){
-					if(rows && rows.length != 0){
-							path = rows[0].picturePath;
-					}else{
-						err = "notFound";
-					}
-				}	
-				callback(err,path);
-			});
-		});
-	}
-}*/
-
 
 /*=========================================================
 	Connexion
