@@ -442,7 +442,7 @@ article:last-child{
 		display:none;
 	}
 
-	#dashboard .search input {
+	#dashboard .search input, #dashboard .search select {
 		padding-right:31px;
 	}
 
@@ -544,6 +544,10 @@ article:last-child{
 	-moz-box-sizing:border-box;
 	-webkit-box-sizing:border-box;
 	box-sizing:border-box;
+}
+
+#detail_objet #description:empty {
+	display:none !important;
 }
 
 @media (min-width:600px){

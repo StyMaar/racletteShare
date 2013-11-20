@@ -137,12 +137,14 @@ angular.module('controllers', ['racletteModules']).
 			}			
 		},true);
 	}]).
-	controller('nouvel_objetCtrl', ['$scope','$http','$location','$window','LoginManager','NotifManager', function($scope, $http, $location, $window, LoginManager, NotifManager) {
+	controller('nouvel_objetCtrl', ['$scope','$http','$location','$window','LoginManager','NotifManager','formValidation', function($scope, $http, $location, $window, LoginManager, NotifManager,formValidation) {
 		$scope.hiddenMessage = true;
-		$scope.errorMessage = "";
+		$scope.errorMessages = [];
 		$scope.hiddenWarning = true;
 		$scope.warningMessage = "";
-		LoginManager.checkLogin(function(){	
+		$scope.hidePic = true;
+		LoginManager.checkLogin(function(){
+			var isItOk = true;
 			$http.get('/categories').success(function(data) {
 				$scope.categories = data;
 			});
@@ -151,15 +153,17 @@ angular.module('controllers', ['racletteModules']).
 			$scope.nom_objet="";
 			$scope.category="";
 			$scope.description=null;
-		
 
 			$window.updatePicture = function(elem) {
 				var file = elem.files[0]; //le fichier lui même
 				if(file.size>5000000){
+					isItOk = false;
 					$scope.hiddenMessage = false;
-					$scope.errorMessage = "L'image est trop grande. Veuillez réessayer avec un fichier plus petit.";
+					$scope.errorMessages.push("L'image est trop grande. Veuillez réessayer avec un fichier plus petit.");
 				}else{
+					isItOk=true;
 					$scope.hiddenMessage = true;
+					$scope.errorMessages = [];
 				}
 				var reader = new FileReader();
 				// Closure to capture the file information.
@@ -167,7 +171,8 @@ angular.module('controllers', ['racletteModules']).
 					return function(e) {
 						$scope.file= theFile;
 						$scope.imgB64=e.target.result,
-						$scope.imgName=escape(theFile.name);
+						$scope.imgName=escape(theFile.name);						
+						$scope.hidePic = false;
 						$scope.$digest(); //met à jour les vues avec le nouveau scope
 					};
 				})(file,elem);
@@ -176,8 +181,22 @@ angular.module('controllers', ['racletteModules']).
 			}
 
 			$scope.submit = function submission(){
-				$scope.hiddenMessage = true;
-				$scope.errorMessage = "";
+				if(!formValidation.checkdescLength($scope.description)){
+					$scope.hiddenMessage = false;
+					$scope.errorMessages.push("La description ne doit pas dépasser 255 caractères.");
+					isItOk = false;
+				}
+				if(!formValidation.checkLength($scope.nom_objet)){
+					$scope.hiddenMessage = false;
+					$scope.errorMessages.push("le nom de l'objet ne doit pas excéder 64 caractères de long.");
+					isItOk = false;
+				}
+				if(isItOk){
+					$scope.hiddenMessage = true;
+					$scope.errorMessages = [];
+				}else{
+					return;
+				}
 				$scope.hiddenWarning = false;
 				$scope.warningMessage = "Transfert de la photo en cours, veuillez patienter.";
 				$scope.submit = function(){}; //on neutralise le bouton submit pendant le temps que ça charche
@@ -221,15 +240,16 @@ angular.module('controllers', ['racletteModules']).
 					$scope.hiddenWarning = true;
 					$scope.warningMessage = "";
 					$scope.hiddenMessage = false;
-					$scope.errorMessage = "Echec de la création de l'objet. Veuillez réessayer.";
+					$scope.errorMessages.push("Echec de la création de l'objet. Veuillez réessayer.");
 				});
 			};
 		},true);
 		
 	}]).
-	controller('edit_objetCtrl', ['$scope','$http','$location','$routeParams','$timeout','LoginManager','NotifManager', function($scope,$http,$location,$routeParams,$timeout, LoginManager, NotifManager) {
+	controller('edit_objetCtrl', ['$scope','$http','$location','$routeParams','$timeout','LoginManager','NotifManager','formValidation', function($scope,$http,$location,$routeParams,$timeout, LoginManager, NotifManager, formValidation) {
 		$scope.hiddenMessage = true;
-		$scope.errorMessage = "";
+		$scope.errorMessages = [];
+		$scope.loadingErr="";
 		$scope.itemId = $routeParams.itemId;
 		LoginManager.checkLogin(function(){
 			NotifManager($scope);
@@ -244,7 +264,8 @@ angular.module('controllers', ['racletteModules']).
 			}).
 			error(function(){
 				$scope.hiddenMessage = false;
-				$scope.errorMessage = "Objet introuvable";
+				$scope.loadingErr="Objet introuvable";
+				$scope.errorMessages.push("Objet introuvable");
 				$scope.submit = function(){}; //on désactive le bouton d'envoi
 				//et on redirige l'utilisateur vers la liste de ses objets
 				$timeout(function(){
@@ -254,6 +275,23 @@ angular.module('controllers', ['racletteModules']).
 			});
 
 			$scope.submit = function(){
+				var isItOk = true;
+				if(!formValidation.checkdescLength($scope.description)){
+					$scope.hiddenMessage = false;
+					$scope.errorMessages.push("La description ne doit pas dépasser 255 caractères.");
+					isItOk = false;
+				}
+				if(!formValidation.checkLength($scope.nom_objet)){
+					$scope.hiddenMessage = false;
+					$scope.errorMessages.push("le nom de l'objet ne doit pas excéder 64 caractères de long.");
+					isItOk = false;
+				}
+				if(isItOk){
+					$scope.hiddenMessage = true;
+					$scope.errorMessages = [];
+				}else{
+					return;
+				}
 				var putData = {
 					nom_objet:$scope.nom_objet,
 					category:$scope.category,
@@ -266,7 +304,7 @@ angular.module('controllers', ['racletteModules']).
 				}).
 				error(function (data, status, headers, config) {
 					$scope.hiddenMessage = false;
-					$scope.errorMessage = "Echec de la mise à jour de l'objet. Veuillez réessayer.";
+					$scope.errorMessages.push("Echec de la mise à jour de l'objet. Veuillez réessayer.");
 				});
 			};
 		},true);

@@ -5,7 +5,7 @@
 			<img ng-src="users/pictures/my" alt="ma photo"/>
 			<span id="myName">{{name}}</span>
 		</a>
-		<a class="badge" href="/messages/conversations">{{notifications | zeroIsNull}}</a>
+		<a class="badge" href="#/messages/conversations">{{notifications | zeroIsNull}}</a>
 	</div>
 	<span ng-hide="!connected" id="deconnexionButton" ng-click="deconnexionClick()" title="Déconnexion"><i class="iconExit"></i></span>
 </header>

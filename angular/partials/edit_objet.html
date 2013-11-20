@@ -1,11 +1,13 @@
 <header class="topBar bois">
 	<a href="#/"><i class="iconHome"></i></a>
 	<a class="badge" href="#/messages/conversations">{{notifications | zeroIsNull}}</a>
-	<h3>{{nom_objet || errorMessage}}</h3>
+	<h3>{{nom_objet || loadingErr}}</h3>
 </header>
-<div ng-hide="hiddenMessage" class="errorMessage">
-	{{errorMessage}}
-</div>
+<ul class="unstyled">
+	<li ng-hide="hiddenMessage" class="errorMessage" ng-repeat="errorMessage in errorMessages">
+		{{errorMessage}}
+	</li>
+</ul>
 <section id="edit_objet" ng-hide="!hiddenMessage">
 	<form ng-submit="submit()">
 		<div id="imgDiv">
