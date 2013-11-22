@@ -353,13 +353,7 @@ app.get("/categories",function(req,res){
 	async.parallel([getCategories()],function(err,results){
 		if(kutils.checkError(err,res)){
 			res.contentType('application/json');
-			var categories = [];
-			if(results[0]){ //transforme une liste de {label:"Cuisine"} en une liste ["Cuisine","Sport" ...
-				results[0].map(function(a){
-					categories.push(a.label);
-				});
-			}
-			res.send(JSON.stringify(categories)); 
+			res.send(JSON.stringify(results[0])); 
 		}
 	}); 
 });
@@ -372,12 +366,12 @@ function getCategories(){
 				callback(err);
 				return;
 			}
-			connection.query('SELECT label FROM category', [], function(err, rows) {
+			//le fonctionnement du système impose que les id des catégories soient des entiers consécutifs de 0 à nombre_catégorie-1 => categorie[4].id == 4
+			connection.query('SELECT label, id FROM category ORDER BY id', [], function(err, rows) {
 				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
 				callback(err,rows);
 			});
 		});
-		//callback(null,[{label:"Couture"}]);
 	}
 }
 
@@ -615,7 +609,7 @@ function getMyItem(itemId, userId){
 				callback(err);
 				return;
 			}
-			connection.query('SELECT name, description, category FROM item WHERE id= ? AND user_id = ?', [itemId, userId], function(err, rows) {
+			connection.query('SELECT name, description, category FROM item WHERE item.id= ? AND user_id = ?', [itemId, userId], function(err, rows) {
 				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
 				var itemDetails = null;
 				if(!err){
@@ -678,7 +672,7 @@ function editItem(userId, item, itemId){
 app.get("/items/category/:category",function(req,res){
 	var category = req.params.category;	
 	try{		
-		
+		check(category).isNumeric();
 	} catch (e){
 		kutils.badRequest(res);
 		return;
@@ -787,7 +781,7 @@ function getItemDetail(itemId,userId){
 				callback(err);
 				return;
 			}
-			connection.query("SELECT if( item.user_id = ?, 'mine', '' ) as isMine, item.name as name, item.description as description, item.category as category, user.name as ownerName, item.user_id as ownerId FROM item INNER JOIN user ON item.user_id=user.id WHERE item.id= ?", [userId, itemId], function(err, rows) {
+			connection.query("SELECT if( item.user_id = ?, 'mine', '' ) as isMine, item.name as name, item.description as description, category.label as category, user.name as ownerName, item.user_id as ownerId FROM item INNER JOIN user ON item.user_id=user.id INNER JOIN category ON category.id=item.category WHERE item.id= ?", [userId, itemId], function(err, rows) {
 				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
 				var itemDetails = null;
 				if(!err){

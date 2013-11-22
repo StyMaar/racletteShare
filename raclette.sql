@@ -37,15 +37,14 @@ CREATE TABLE IF NOT EXISTS `category` (
 --
 
 INSERT INTO `category` (`id`, `label`) VALUES
-(1, 'Cuisine'),
-(2, 'Sport'),
-(3, 'Bébé'),
-(4, 'Bricolage'),
-(5, 'Jardinage'),
-(6, 'Jeu'),
-(7, 'Service'),
-(8, 'Culture'),
-(9, 'Loisirs');
+(0, 'Coup de main'),
+(1, 'Fiesta'),
+(2, 'Voyage'),
+(3, 'High-tech'),
+(4, 'Bricolage/Jardinage'),
+(5, 'Sport'),
+(6, 'Maison/Cuisine'),
+(7, 'Culture');
 
 -- --------------------------------------------------------
 
@@ -76,7 +75,7 @@ CREATE TABLE IF NOT EXISTS `item` (
   `user_id` varchar(36) NOT NULL,
   `name` varchar(64) NOT NULL,
   `description` varchar(255) DEFAULT NULL,
-  `category` varchar(64) NOT NULL,
+  `category` int(10) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `user_ID` (`user_id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;

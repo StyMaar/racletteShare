@@ -91,7 +91,7 @@ angular.module('controllers', ['racletteModules']).
 			});
 		}
 	}]).
-	controller('dashboardCtrl', ['$scope','$http','LoginManager','NotifManager', function($scope,$http,LoginManager,NotifManager) {
+	controller('dashboardCtrl', ['$scope','$http','LoginManager','NotifManager','CategoryManager', function($scope, $http, LoginManager, NotifManager, CategoryManager) {
 		$scope.connected = false;
 		LoginManager.checkLogin(function(){
 			NotifManager($scope);
@@ -101,8 +101,8 @@ angular.module('controllers', ['racletteModules']).
 			});
 			$scope.deconnexionClick = LoginManager.disconnect;
 		});//si on n'est pas connecté, il ne se passe rien
-		$http.get('/categories').success(function(data) {
-			$scope.categories = data;
+		CategoryManager.getCatList(function(catList) {
+			$scope.categories = catList;
 		});
 	}]).
 	controller('mon_profilCtrl', ['$scope','$http','LoginManager','NotifManager', function($scope,$http,LoginManager,NotifManager) {
@@ -137,7 +137,7 @@ angular.module('controllers', ['racletteModules']).
 			}			
 		},true);
 	}]).
-	controller('nouvel_objetCtrl', ['$scope','$http','$location','$window','LoginManager','NotifManager','formValidation', function($scope, $http, $location, $window, LoginManager, NotifManager,formValidation) {
+	controller('nouvel_objetCtrl', ['$scope','$http','$location','$window','LoginManager','NotifManager','formValidation','CategoryManager', function($scope, $http, $location, $window, LoginManager, NotifManager, formValidation, CategoryManager) {
 		$scope.hiddenMessage = true;
 		$scope.errorMessages = [];
 		$scope.hiddenWarning = true;
@@ -145,13 +145,13 @@ angular.module('controllers', ['racletteModules']).
 		$scope.hidePic = true;
 		LoginManager.checkLogin(function(){
 			var isItOk = true;
-			$http.get('/categories').success(function(data) {
-				$scope.categories = data;
+			CategoryManager.getCatList(function(catList) {
+				$scope.categories = catList;
 			});
 			NotifManager($scope);
 			$scope.file = null;
 			$scope.nom_objet="";
-			$scope.category="";
+			$scope.category={};
 			$scope.description=null;
 
 			$window.updatePicture = function(elem) {
@@ -226,7 +226,7 @@ angular.module('controllers', ['racletteModules']).
 				    // in the above transformRequest method
 				    data: {
 						nom_objet:$scope.nom_objet,
-						category:$scope.category,
+						category:$scope.category.id,
 						description:$scope.description, 
 						file: $scope.file
 					}
@@ -246,20 +246,24 @@ angular.module('controllers', ['racletteModules']).
 		},true);
 		
 	}]).
-	controller('edit_objetCtrl', ['$scope','$http','$location','$routeParams','$timeout','LoginManager','NotifManager','formValidation', function($scope,$http,$location,$routeParams,$timeout, LoginManager, NotifManager, formValidation) {
+	controller('edit_objetCtrl', ['$scope','$http','$location','$routeParams','$timeout','LoginManager','NotifManager','formValidation', 'CategoryManager', function($scope,$http,$location,$routeParams,$timeout, LoginManager, NotifManager, formValidation, CategoryManager) {
 		$scope.hiddenMessage = true;
 		$scope.errorMessages = [];
 		$scope.loadingErr="";
 		$scope.itemId = $routeParams.itemId;
 		LoginManager.checkLogin(function(){
 			NotifManager($scope);
-			$http.get('/categories').success(function(data) {
-				$scope.categories = data;
+			CategoryManager.getCatList(function(catList) {
+				$scope.categories = catList.map(function(a){
+					return a.label;
+				}); //transforme [{id:1,label:"toto"},{id:2,label:"bob"}] en ["toto","bob"]
 			});
 
 			$http.get('/items/my/detail/'+$scope.itemId).success(function(data) {				
 				$scope.nom_objet=data.name;
-				$scope.category=data.category;
+				CategoryManager.getCatLabelById(parseInt(data.category,10),function(label){
+					$scope.category=label;
+				});
 				$scope.description=data.description;
 			}).
 			error(function(){
@@ -294,7 +298,7 @@ angular.module('controllers', ['racletteModules']).
 				}
 				var putData = {
 					nom_objet:$scope.nom_objet,
-					category:$scope.category,
+					category:CategoryManager.getCatIdByLabel($scope.category),
 					description:$scope.description
 				}
 				
@@ -310,14 +314,16 @@ angular.module('controllers', ['racletteModules']).
 		},true);
 		
 	}]).
-	controller('recherche_categoryCtrl', ['$scope','$http','$routeParams','$timeout','LoginManager','NotifManager', function($scope,$http,$routeParams,$timeout, LoginManager, NotifManager) {
+	controller('recherche_categoryCtrl', ['$scope','$http','$routeParams','$timeout','LoginManager','NotifManager','CategoryManager', function($scope,$http,$routeParams,$timeout, LoginManager, NotifManager, CategoryManager) {
 		LoginManager.checkLogin(function(){
 			NotifManager($scope);
 		});			
 		$scope.hiddenMessage = true;
 		$scope.errorMessage = "";
-		$scope.category = $routeParams.category;
-		$http.get('/items/category/'+$scope.category).success(function(data) {				
+		CategoryManager.getCatLabelById($routeParams.category, function(catLabel){
+			$scope.category = catLabel;	
+		});
+		$http.get('/items/category/'+$routeParams.category).success(function(data) {				
 			$scope.item_list = data;
 		}).
 		error(function(data, status){

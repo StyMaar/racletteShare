@@ -28,8 +28,8 @@
 			</a>
 		</div>
 		<div class="search">
-			<select ng-model="category" ng-options="cat for cat in categories" ng-model="searchParam2"/></select>
-			<a href="#/items/category/{{searchParam2}}" class="bois">
+			<select ng-model="category" ng-options="cat.label for cat in categories"/></select>
+			<a href="#/items/category/{{category.id}}" class="bois">
 				<i class="iconSearch"></i>
 				<span> Rechercher </span>
 			</a>

@@ -24,7 +24,7 @@
 		</div>
 		<div>
 			<label for="category">Catégorie</label>
-			<select id="category" ng-model="category" required="required" ng-options="cat for cat in categories"/>
+			<select id="category" ng-model="category" required="required" ng-options="cat.label for cat in categories"/>
 			</select>
 		</div>
 		<div>
