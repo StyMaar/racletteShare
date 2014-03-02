@@ -213,7 +213,7 @@ app.get("/users/:login/:password",function(req,res){
 		return;
 	}
 	//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
-	async.parallel([doLogin(login,password)],function(err,result){
+	doLogin(login,password,function(err,result){
 		if(kutils.checkError(err,res)){
 			req.session.user_id=result[0];
 			kutils.ok(res);				
@@ -221,28 +221,26 @@ app.get("/users/:login/:password",function(req,res){
 	});
 });
 
-function doLogin(login, password){
-	return function(callback){ 
-		pool.getConnection(function(err,connection){
-			//on s'assure que l'appel d'une connection dans le pool se passe bien.
-			if(err){
-				callback(err);
-				return;
-			}
-			connection.query('SELECT id FROM user WHERE login = ? AND password = SHA2(?, 224)', [login,password], function(err, rows) {
-				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-				var id = null;
-				if(!err){
-					if(rows && rows.length != 0){
-							id = rows[0].id;
-					}else{
-						err = "forbiden";
-					}
+function doLogin(login, password, callback){ 
+	pool.getConnection(function(err,connection){
+		//on s'assure que l'appel d'une connection dans le pool se passe bien.
+		if(err){
+			callback(err);
+			return;
+		}
+		connection.query('SELECT id FROM user WHERE login = ? AND password = SHA2(?, 224)', [login,password], function(err, rows) {
+			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
+			var id = null;
+			if(!err){
+				if(rows && rows.length != 0){
+						id = rows[0].id;
+				}else{
+					err = "forbiden";
 				}
-				callback(err,id);
-			});
+			}
+			callback(err,id);
 		});
-	}
+	});
 }
 
 /*================================================
@@ -265,7 +263,7 @@ app.post("/users",function(req,res){
 		return;
 	}
 	//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
-	async.parallel([createUser(req.body)],function(err,results){
+	createUser(req.body,function(err,results){
 		if(kutils.checkError(err,res)){
 			req.session.user_id=results[0];
 			kutils.created(res);
@@ -273,23 +271,21 @@ app.post("/users",function(req,res){
 	});
 });
 
-function createUser(user){
+function createUser(user, callback){
 	var id = kutils.uuid();
-	return function(callback){
-		pool.getConnection(function(err,connection){
-			//on s'assure que l'appel d'une connection dans le pool se passe bien.
-			if(err){
-				callback(err);
-				return;
-			}
-			connection.query('INSERT INTO user (id, login, name, password ,city, tel) \
-			VALUES (?,?,?,SHA2(?, 224),?,?)', [id, user.login, user.name, user.password, user.city, user.tel], function(err, results) {
-				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-				err = kutils.checkUpdateErr(err,results);
-				callback(err,id);
-			});
+	pool.getConnection(function(err,connection){
+		//on s'assure que l'appel d'une connection dans le pool se passe bien.
+		if(err){
+			callback(err);
+			return;
+		}
+		connection.query('INSERT INTO user (id, login, name, password ,city, tel) \
+		VALUES (?,?,?,SHA2(?, 224),?,?)', [id, user.login, user.name, user.password, user.city, user.tel], function(err, results) {
+			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
+			err = kutils.checkUpdateErr(err,results);
+			callback(err,id);
 		});
-	}
+	});
 }
 
 /* ==================================================
@@ -299,7 +295,7 @@ function createUser(user){
 app.get("/users/my",function(req,res){
 	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
 		//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
-		async.parallel([getUserInfo(req.session.user_id)],function(err,results){
+		getUserInfo(req.session.user_id,function(err,results){
 			if(kutils.checkError(err,res)){
 				res.contentType('application/json');
 				res.send(JSON.stringify(results[0])); 
@@ -315,28 +311,26 @@ app.get("/users/my",function(req,res){
   fonction faite pour être appelée avec async
 */
 
-function getUserInfo(userId){
-	return function(callback){ 
-		pool.getConnection(function(err,connection){
-			//on s'assure que l'appel d'une connection dans le pool se passe bien.
-			if(err){
-				callback(err);
-				return;
-			}
-			connection.query('SELECT name, id, city FROM user WHERE id = ?', [userId], function(err, rows) {
-				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-				var userData = null;
-				if(!err){
-					if(rows && rows.length!=0){
-						userData = rows[0];
-					}else{
-						err = "notFound";
-					}
+function getUserInfo(userId, callback){
+	pool.getConnection(function(err,connection){
+		//on s'assure que l'appel d'une connection dans le pool se passe bien.
+		if(err){
+			callback(err);
+			return;
+		}
+		connection.query('SELECT name, id, city FROM user WHERE id = ?', [userId], function(err, rows) {
+			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
+			var userData = null;
+			if(!err){
+				if(rows && rows.length!=0){
+					userData = rows[0];
+				}else{
+					err = "notFound";
 				}
-				callback(err,userData);
-			});
+			}
+			callback(err,userData);
 		});
-	}
+	});
 }
 
 
@@ -350,7 +344,7 @@ app.get("/deconnexion",function(req,res){
 });
 
 app.get("/categories",function(req,res){
-	async.parallel([getCategories()],function(err,results){
+	getCategories(function(err,results){
 		if(kutils.checkError(err,res)){
 			res.contentType('application/json');
 			res.send(JSON.stringify(results[0])); 
@@ -358,21 +352,19 @@ app.get("/categories",function(req,res){
 	}); 
 });
 
-function getCategories(){
-	return function(callback){ 
-		pool.getConnection(function(err,connection){
-			//on s'assure que l'appel d'une connection dans le pool se passe bien.
-			if(err){
-				callback(err);
-				return;
-			}
-			//le fonctionnement du système impose que les id des catégories soient des entiers consécutifs de 0 à nombre_catégorie-1 => categorie[4].id == 4
-			connection.query('SELECT label, id FROM category ORDER BY id', [], function(err, rows) {
-				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-				callback(err,rows);
-			});
+function getCategories(callback){
+	pool.getConnection(function(err,connection){
+		//on s'assure que l'appel d'une connection dans le pool se passe bien.
+		if(err){
+			callback(err);
+			return;
+		}
+		//le fonctionnement du système impose que les id des catégories soient des entiers consécutifs de 0 à nombre_catégorie-1 => categorie[4].id == 4
+		connection.query('SELECT label, id FROM category ORDER BY id', [], function(err, rows) {
+			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
+			callback(err,rows);
 		});
-	}
+	});
 }
 
 /*================================================
@@ -382,7 +374,7 @@ function getCategories(){
 app.get("/items/my",function(req,res){
 	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
 		//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
-		async.parallel([getItemList(req.session.user_id)],function(err,results){
+		getItemList(req.session.user_id,function(err,results){
 			if(kutils.checkError(err,res)){
 				var itemsList = results[0];
 				res.contentType('application/json');
@@ -402,20 +394,18 @@ app.get("/items/my",function(req,res){
     Toutes les fonctions d'accès à la base de donnée seront de cette forme là, celà permettra de pouvoir les paralléliser sans peine
 */
 
-function getItemList(userId){
-	return function(callback){ 
-		pool.getConnection(function(err,connection){
-			//on s'assure que l'appel d'une connection dans le pool se passe bien.
-			if(err){
-				callback(err);
-				return;
-			}
-			connection.query('SELECT name, id FROM item WHERE user_id=?', [userId], function(err, rows) {
-				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-				callback(err,rows);
-			});
+function getItemList(userId, callback){
+	pool.getConnection(function(err,connection){
+		//on s'assure que l'appel d'une connection dans le pool se passe bien.
+		if(err){
+			callback(err);
+			return;
+		}
+		connection.query('SELECT name, id FROM item WHERE user_id=?', [userId], function(err, rows) {
+			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
+			callback(err,rows);
 		});
-	}
+	});
 }
 
 app.delete("/items/detail/:itemId",function(req,res){
@@ -428,7 +418,7 @@ app.delete("/items/detail/:itemId",function(req,res){
 			return;
 		}		
 		//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
-		async.parallel([deleteItem(req.session.user_id, itemId)],function(err,results){
+		deleteItem(req.session.user_id, itemId, function(err,results){
 			if(kutils.checkError(err,res)){
 				kutils.ok(res);
 				deleteFile(getPicturePathFromId(itemId));
@@ -445,21 +435,19 @@ app.delete("/items/detail/:itemId",function(req,res){
   deleteItem : fonction assurant la suppression d'un objet dans la base de donnée pour peu qu'on ai les droits sur cet objet.
 */
 
-function deleteItem(userId, itemId){
-	return function(callback){
-		pool.getConnection(function(err,connection){
-			//on s'assure que l'appel d'une connection dans le pool se passe bien.
-			if(err){
-				callback(err);
-				return;
-			}
-			connection.query('DELETE FROM item WHERE user_id = ? AND id = ?', [userId, itemId] , function(err, results) {
-				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-				err = kutils.checkUpdateErr(err,results);
-				callback(err);
-			});
+function deleteItem(userId, itemId, callback){
+	pool.getConnection(function(err,connection){
+		//on s'assure que l'appel d'une connection dans le pool se passe bien.
+		if(err){
+			callback(err);
+			return;
+		}
+		connection.query('DELETE FROM item WHERE user_id = ? AND id = ?', [userId, itemId] , function(err, results) {
+			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
+			err = kutils.checkUpdateErr(err,results);
+			callback(err);
 		});
-	}
+	});
 }
 
 
@@ -490,9 +478,7 @@ app.post("/items",function(req,res){
 		}
 		var exReg = /.*(\.[a-z]*)$/; //regex pour trouver l'extension du fichier
 		var extension = photo.path.replace(exReg,"$1");
-
-		//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
-		async.parallel([newItem(req.session.user_id, req.body)],function(err,results){
+		newItem(req.session.user_id, req.body,function(err,results){
 			if(kutils.checkError(err,res)){
 				var id = results[0];
 				savePictures(photo.path, id, function (err) {
@@ -557,9 +543,8 @@ function deleteFile(path){
   et créé cet objet dans la base
 */
 
-function newItem(userId, item){
+function newItem(userId, item, callback){
 	var id = kutils.uuid();
-	return function(callback){
 		pool.getConnection(function(err,connection){
 			//on s'assure que l'appel d'une connection dans le pool se passe bien.
 			if(err){
@@ -573,7 +558,6 @@ function newItem(userId, item){
 				callback(err,id);
 			});
 		});
-	}
 }
 
 /*================================================
@@ -588,8 +572,7 @@ app.get("/items/my/detail/:itemId",function(req,res){
 			kutils.badRequest(res);
 			return;
 		}
-		//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
-		async.parallel([getMyItem(itemId, req.session.user_id)],function(err,results){
+		getMyItem(itemId, req.session.user_id,function(err,results){
 			if(kutils.checkError(err,res)){
 				var itemDetails = results[0];
 				res.contentType('application/json');
@@ -601,28 +584,26 @@ app.get("/items/my/detail/:itemId",function(req,res){
 	}
 });
 
-function getMyItem(itemId, userId){
-	return function(callback){
-		pool.getConnection(function(err,connection){
-			//on s'assure que l'appel d'une connection dans le pool se passe bien.
-			if(err){
-				callback(err);
-				return;
-			}
-			connection.query('SELECT name, description, category FROM item WHERE item.id= ? AND user_id = ?', [itemId, userId], function(err, rows) {
-				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-				var itemDetails = null;
-				if(!err){
-					if(rows && rows.length!=0){
-						itemDetails = rows[0];
-					}else{
-						err = "notFound";
-					}
+function getMyItem(itemId, userId, callback){
+	pool.getConnection(function(err,connection){
+		//on s'assure que l'appel d'une connection dans le pool se passe bien.
+		if(err){
+			callback(err);
+			return;
+		}
+		connection.query('SELECT name, description, category FROM item WHERE item.id= ? AND user_id = ?', [itemId, userId], function(err, rows) {
+			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
+			var itemDetails = null;
+			if(!err){
+				if(rows && rows.length!=0){
+					itemDetails = rows[0];
+				}else{
+					err = "notFound";
 				}
-				callback(err,itemDetails);
-			});
+			}
+			callback(err,itemDetails);
 		});
-	}
+	});
 }
 
 app.put("/items/detail/:itemId",function(req,res){
@@ -638,8 +619,7 @@ app.put("/items/detail/:itemId",function(req,res){
 			kutils.badRequest(res);
 			return;
 		}
-		//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
-		async.parallel([editItem(req.session.user_id, req.body, itemId)],function(err,results){
+		editItem(req.session.user_id, req.body, itemId, function(err,results){
 			if(kutils.checkError(err,res)){
 				kutils.ok(res);
 			}
@@ -649,21 +629,19 @@ app.put("/items/detail/:itemId",function(req,res){
 	}
 });
 
-function editItem(userId, item, itemId){
-	return function(callback){
-		pool.getConnection(function(err,connection){
-			//on s'assure que l'appel d'une connection dans le pool se passe bien.
-			if(err){
-				callback(err);
-				return;
-			}
-			connection.query('UPDATE `item` SET `name`=?,`description`=?,`category`=? WHERE id=? AND user_id = ?', [item.nom_objet, item.description, item.category, itemId, userId], function(err, results) {
-				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-				err = kutils.checkUpdateErr(err,results);		
-				callback(err);
-			});
+function editItem(userId, item, itemId, callback){
+	pool.getConnection(function(err,connection){
+		//on s'assure que l'appel d'une connection dans le pool se passe bien.
+		if(err){
+			callback(err);
+			return;
+		}
+		connection.query('UPDATE `item` SET `name`=?,`description`=?,`category`=? WHERE id=? AND user_id = ?', [item.nom_objet, item.description, item.category, itemId, userId], function(err, results) {
+			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
+			err = kutils.checkUpdateErr(err,results);		
+			callback(err);
 		});
-	}
+	});
 }
 /*================================================
 	recherche_categorie
@@ -677,8 +655,7 @@ app.get("/items/category/:category",function(req,res){
 		kutils.badRequest(res);
 		return;
 	}
-	//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
-	async.parallel([getItemByCategory(category)],function(err,results){
+	getItemByCategory(category,function(err,results){
 		if(kutils.checkError(err,res)){
 			var itemList = results[0];
 			res.contentType('application/json');
@@ -687,25 +664,23 @@ app.get("/items/category/:category",function(req,res){
 	});
 });
 
-function getItemByCategory(category){
-	return function(callback){
-		pool.getConnection(function(err,connection){
-			//on s'assure que l'appel d'une connection dans le pool se passe bien.
-			if(err){
-				callback(err);
-				return;
-			}
-			connection.query('SELECT item.id as id, user.name as ownerName, item.name as name FROM item INNER JOIN user ON item.user_id=user.id WHERE item.category= ?', [category], function(err, rows) {
-				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-				if(!err){
-					if(!rows || rows.length==0){
-						err = "notFound";
-					}
+function getItemByCategory(category, callback){
+	pool.getConnection(function(err,connection){
+		//on s'assure que l'appel d'une connection dans le pool se passe bien.
+		if(err){
+			callback(err);
+			return;
+		}
+		connection.query('SELECT item.id as id, user.name as ownerName, item.name as name FROM item INNER JOIN user ON item.user_id=user.id WHERE item.category= ?', [category], function(err, rows) {
+			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
+			if(!err){
+				if(!rows || rows.length==0){
+					err = "notFound";
 				}
-				callback(err,rows);
-			});
+			}
+			callback(err,rows);
 		});
-	}
+	});
 }
 
 /*================================================
@@ -720,8 +695,7 @@ app.get("/items/keyword/:keyword",function(req,res){
 		kutils.badRequest(res);
 		return;
 	}
-	//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
-	async.parallel([getItemByName(keyword)],function(err,results){
+	getItemByName(keyword,function(err,results){
 		if(kutils.checkError(err,res)){
 			var itemList = results[0];
 			res.contentType('application/json');
@@ -731,24 +705,22 @@ app.get("/items/keyword/:keyword",function(req,res){
 });
 
 function getItemByName(keyword){
-	return function(callback){
-		pool.getConnection(function(err,connection){
-			//on s'assure que l'appel d'une connection dans le pool se passe bien.
-			if(err){
-				callback(err);
-				return;
-			}
-			connection.query('SELECT item.id as id, user.name as ownerName, item.name as name FROM item INNER JOIN user ON item.user_id=user.id WHERE MATCH (item.name,item.description) AGAINST (?)', [keyword], function(err, rows) {
-				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-				if(!err){
-					if(!rows || rows.length==0){
-						err = "notFound";
-					}
+	pool.getConnection(function(err,connection){
+		//on s'assure que l'appel d'une connection dans le pool se passe bien.
+		if(err){
+			callback(err);
+			return;
+		}
+		connection.query('SELECT item.id as id, user.name as ownerName, item.name as name FROM item INNER JOIN user ON item.user_id=user.id WHERE MATCH (item.name,item.description) AGAINST (?)', [keyword], function(err, rows) {
+			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
+			if(!err){
+				if(!rows || rows.length==0){
+					err = "notFound";
 				}
-				callback(err,rows);
-			});
+			}
+			callback(err,rows);
 		});
-	}
+	});
 }
 
 /*================================================
@@ -762,8 +734,7 @@ app.get("/items/detail/:itemId",function(req,res){
 		kutils.badRequest(res);
 		return;
 	}
-	//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
-	async.parallel([getItemDetail(itemId,req.session.user_id)],function(err,results){
+	getItemDetail(itemId,req.session.user_id,function(err,results){
 		if(kutils.checkError(err,res)){
 			var itemDetails = results[0];
 			res.contentType('application/json');
@@ -773,28 +744,26 @@ app.get("/items/detail/:itemId",function(req,res){
 });
 
 //ici le userId est là a titre informatif, on indiquera d'une façon spéciale dans la liste les objets qui m'appartiennent.
-function getItemDetail(itemId,userId){
-	return function(callback){
-		pool.getConnection(function(err,connection){
-			//on s'assure que l'appel d'une connection dans le pool se passe bien.
-			if(err){
-				callback(err);
-				return;
-			}
-			connection.query("SELECT if( item.user_id = ?, 'mine', '' ) as isMine, item.name as name, item.description as description, category.label as category, user.name as ownerName, item.user_id as ownerId FROM item INNER JOIN user ON item.user_id=user.id INNER JOIN category ON category.id=item.category WHERE item.id= ?", [userId, itemId], function(err, rows) {
-				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-				var itemDetails = null;
-				if(!err){
-					if(rows && rows.length!=0){
-						itemDetails = rows[0];
-					}else{
-						err = "notFound";
-					}
+function getItemDetail(itemId,userId, callback){
+	pool.getConnection(function(err,connection){
+		//on s'assure que l'appel d'une connection dans le pool se passe bien.
+		if(err){
+			callback(err);
+			return;
+		}
+		connection.query("SELECT if( item.user_id = ?, 'mine', '' ) as isMine, item.name as name, item.description as description, category.label as category, user.name as ownerName, item.user_id as ownerId FROM item INNER JOIN user ON item.user_id=user.id INNER JOIN category ON category.id=item.category WHERE item.id= ?", [userId, itemId], function(err, rows) {
+			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
+			var itemDetails = null;
+			if(!err){
+				if(rows && rows.length!=0){
+					itemDetails = rows[0];
+				}else{
+					err = "notFound";
 				}
-				callback(err,itemDetails);
-			});
+			}
+			callback(err,itemDetails);
 		});
-	}
+	});
 }
 
 /*================================================
@@ -811,8 +780,7 @@ app.get("/messages/:itemId/:contactId",function(req,res){
 			kutils.badRequest(res);
 			return;
 		}
-		//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
-		async.parallel([getConversationDetail(itemId,contactId), getMessagesList(itemId,contactId,req.session.user_id)],function(err,results){
+		getConversationDetail(itemId,contactId,getMessagesList(itemId,contactId,req.session.user_id,function(err,results){
 			if(kutils.checkError(err,res)){
 				var convDetails = results[0];
 				markAsRead(req.session.user_id,contactId,itemId);
@@ -820,69 +788,65 @@ app.get("/messages/:itemId/:contactId",function(req,res){
 				res.contentType('application/json');
 				res.send(JSON.stringify(convDetails));
 			}
-		});
+		}));
 	}else{
 		kutils.forbiden(res);
 	}
 });
 
-function getConversationDetail(itemId,contactId){
-	return function(callback){
-		pool.getConnection(function(err,connection){
-			//on s'assure que l'appel d'une connection dans le pool se passe bien.
-			if(err){
-				callback(err);
-				return;
-			}
-			connection.query("SELECT * \
-				FROM (\
-					SELECT name AS nom_contact\
-					FROM user\
-					WHERE id = ?\
-				)A, (\
-					SELECT name AS nom_objet\
-					FROM item\
-					WHERE id = ?\
-				)B", [contactId,itemId], function(err, rows) {
-				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-				var convDetails = null;
-				if(!err){
-					if(rows && rows.length!=0){
-						convDetails = rows[0];
-					}else{
-						err = "notFound";
-					}
+function getConversationDetail(itemId,contactId, callback){
+	pool.getConnection(function(err,connection){
+		//on s'assure que l'appel d'une connection dans le pool se passe bien.
+		if(err){
+			callback(err);
+			return;
+		}
+		connection.query("SELECT * \
+			FROM (\
+				SELECT name AS nom_contact\
+				FROM user\
+				WHERE id = ?\
+			)A, (\
+				SELECT name AS nom_objet\
+				FROM item\
+				WHERE id = ?\
+			)B", [contactId,itemId], function(err, rows) {
+			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
+			var convDetails = null;
+			if(!err){
+				if(rows && rows.length!=0){
+					convDetails = rows[0];
+				}else{
+					err = "notFound";
 				}
-				callback(err,convDetails);
-			});
+			}
+			callback(err,convDetails);
 		});
-	}
+	});
 }
 
-function getMessagesList(itemId,contactId,myId){
-	return function(callback){
-		pool.getConnection(function(err,connection){
-			//on s'assure que l'appel d'une connection dans le pool se passe bien.
-			if(err){
-				callback(err);
-				return;
-			}
-			connection.query("SELECT message.date, \
-								message.content, \
-								IF(message.sender_id = ?,'me','other') AS sender \
-							FROM \
-								message \
-							WHERE message.item_id = ? \
-								AND ( \
-								(message.sender_id = ? AND message.receiver_id = ?) OR (message.sender_id = ? AND message.receiver_id = ?) \
-								) \
-							ORDER BY message.date; ", [myId,itemId,myId,contactId,contactId,myId], function(err, rows) {
-				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-				var msgList = rows;
-				callback(err,msgList);
-			});
+function getMessagesList(itemId,contactId,myId, callback){
+	pool.getConnection(function(err,connection){
+		//on s'assure que l'appel d'une connection dans le pool se passe bien.
+		if(err){
+			callback(err);
+			return;
+		}
+		connection.query("SELECT message.date, \
+							message.content, \
+							IF(message.sender_id = ?,'me','other') AS sender \
+						FROM \
+							message \
+						WHERE message.item_id = ? \
+							AND ( \
+							(message.sender_id = ? AND message.receiver_id = ?) OR (message.sender_id = ? AND message.receiver_id = ?) \
+							) \
+						ORDER BY message.date; ", [myId,itemId,myId,contactId,contactId,myId], function(err, rows) {
+			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
+			var msgList = rows;
+			callback(err,msgList);
 		});
-	}
+	});
 }
 
 app.post("/messages/:itemId/:contactId",function(req,res){
@@ -896,8 +860,7 @@ app.post("/messages/:itemId/:contactId",function(req,res){
 			kutils.badRequest(res);
 			return;
 		}
-		//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
-		async.parallel([newMessage(itemId, req.session.user_id, contactId, req.body.message)],function(err,results){
+		newMessage(itemId, req.session.user_id, contactId, req.body.message,function(err,results){
 			if(kutils.checkError(err,res)){
 				var eventString = contactId+req.session.user_id+itemId;
 				var msg = {
@@ -927,22 +890,20 @@ app.post("/messages/:itemId/:contactId",function(req,res){
 });
 
 
-function newMessage(itemId, myId, contactId, message){
-	return function(callback){
-		pool.getConnection(function(err,connection){
-			//on s'assure que l'appel d'une connection dans le pool se passe bien.
-			if(err){
-				callback(err);
-				return;
-			}
-			connection.query("INSERT INTO message (item_id, sender_id, content, date, receiver_id ) \
+function newMessage(itemId, myId, contactId, message, callback){
+	pool.getConnection(function(err,connection){
+		//on s'assure que l'appel d'une connection dans le pool se passe bien.
+		if(err){
+			callback(err);
+			return;
+		}
+		connection.query("INSERT INTO message (item_id, sender_id, content, date, receiver_id ) \
 SELECT ?, ?, ?, NOW(), ? FROM item WHERE id = ? AND (user_id = ? OR user_id = ?)", [itemId, myId, message, contactId, itemId, myId, contactId] , function(err, results) {
-				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-				err = kutils.checkUpdateErr(err,results);
-				callback(err);
-			});
+			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
+			err = kutils.checkUpdateErr(err,results);
+			callback(err);
 		});
-	}
+	});
 }
 
 /*================================================
@@ -952,8 +913,7 @@ SELECT ?, ?, ?, NOW(), ? FROM item WHERE id = ? AND (user_id = ? OR user_id = ?)
 app.get("/messages/conversations",function(req,res){
 	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
 		var myId = req.session.user_id;
-		//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
-		async.parallel([getConversationsList(myId)],function(err,results){
+		getConversationsList(myId,function(err,results){
 			var convList = !err?results[0]:null;
 			listUnread(err,myId,convList,function(err,cL){
 				if(kutils.checkError(err,res)){
@@ -968,27 +928,25 @@ app.get("/messages/conversations",function(req,res){
 	}
 });
 
-function getConversationsList(myId){
-	return function(callback){
-		pool.getConnection(function(err,connection){
-			//on s'assure que l'appel d'une connection dans le pool se passe bien.
-			if(err){
-				callback(err);
-				return;
-			}
-			connection.query("SELECT DISTINCT user.id AS contact_id, user.name AS contact_name, item.id AS item_id, item.name AS item_name \
-							FROM (\
-								SELECT item_id, IF( message.sender_id = ?, message.receiver_id, IF( message.receiver_id = ?, message.sender_id, NULL ) ) AS contact_id \
-								FROM message \
-							)A \
-							INNER JOIN user ON A.contact_id = user.id\
-							INNER JOIN item ON A.item_id = item.id", [myId,myId], function(err, rows) {
-				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-				var convList = rows;
-				callback(err,convList);
-			});
+function getConversationsList(myId, callback){
+	pool.getConnection(function(err,connection){
+		//on s'assure que l'appel d'une connection dans le pool se passe bien.
+		if(err){
+			callback(err);
+			return;
+		}
+		connection.query("SELECT DISTINCT user.id AS contact_id, user.name AS contact_name, item.id AS item_id, item.name AS item_name \
+						FROM (\
+							SELECT item_id, IF( message.sender_id = ?, message.receiver_id, IF( message.receiver_id = ?, message.sender_id, NULL ) ) AS contact_id \
+							FROM message \
+						)A \
+						INNER JOIN user ON A.contact_id = user.id\
+						INNER JOIN item ON A.item_id = item.id", [myId,myId], function(err, rows) {
+			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
+			var convList = rows;
+			callback(err,convList);
 		});
-	}
+	});
 }
 
 /////  Notifications des messages
