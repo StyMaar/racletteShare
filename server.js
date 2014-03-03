@@ -10,6 +10,14 @@ var redis = require("redis").createClient();
 
 var imagemagick = require('imagemagick');
 
+var mysql = require('mysql');
+var pool = mysql.createPool({
+	host:'localhost',
+	user:'root',
+	password:'1234poney',
+	database:'raclette'
+});
+
 var services = require('./services');
 var kutils = require('./kutils');
 
@@ -135,12 +143,13 @@ app.get("/users/:login/:password",function(req,res){
 		kutils.badRequest(res);
 		return;
 	}
-	services.doLogin(login,password,function(err,result){
+	pool.getConnection(services.doLogin(login,password,function(err,result,connection){
 		if(kutils.checkError(err,res)){
 			req.session.user_id=result[0];
 			kutils.ok(res);				
 		}
-	});
+		connection.release();
+	}));
 });
 
 /* fonction déplacée : doLogin*/
@@ -165,12 +174,13 @@ app.post("/users",function(req,res){
 		return;
 	}
 	
-	services.createUser(req.body,function(err,results){
+	pool.getConnection(services.createUser(req.body,function(err,results,connection){
 		if(kutils.checkError(err,res)){
 			req.session.user_id=results[0];
 			kutils.created(res);
 		}
-	});
+		connection.release();
+	}));
 });
 
 /* fonction déplacée : createUser */
@@ -182,12 +192,13 @@ app.post("/users",function(req,res){
 app.get("/users/my",function(req,res){
 	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
 		
-		services.getUserInfo(req.session.user_id,function(err,results){
+		pool.getConnection(services.getUserInfo(req.session.user_id,function(err,results,connection){
 			if(kutils.checkError(err,res)){
 				res.contentType('application/json');
 				res.send(JSON.stringify(results[0])); 
 			}
-		});
+			connection.release();
+		}));
 	}else{
 		kutils.forbiden(res);
 	}
@@ -205,12 +216,13 @@ app.get("/deconnexion",function(req,res){
 });
 
 app.get("/categories",function(req,res){
-	services.getCategories(function(err,results){
+	pool.getConnection(services.getCategories(function(err,results,connection){
 		if(kutils.checkError(err,res)){
 			res.contentType('application/json');
 			res.send(JSON.stringify(results[0])); 
 		}
-	}); 
+		connection.release();
+	})); 
 });
 /* fonction déplacée : getCategories*/
 
@@ -221,13 +233,14 @@ app.get("/categories",function(req,res){
 app.get("/items/my",function(req,res){
 	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
 		
-		services.getItemList(req.session.user_id,function(err,results){
+		pool.getConnection(services.getItemList(req.session.user_id,function(err,results,connection){
 			if(kutils.checkError(err,res)){
 				var itemsList = results[0];
 				res.contentType('application/json');
 				res.send(JSON.stringify(itemsList));
 			}
-		});
+			connection.release();
+		}));
 	}else{
 		kutils.forbiden(res);
 	}
@@ -244,13 +257,14 @@ app.delete("/items/detail/:itemId",function(req,res){
 			return;
 		}		
 		
-		services.deleteItem(req.session.user_id, itemId, function(err,results){
+		pool.getConnection(services.deleteItem(req.session.user_id, itemId, function(err,results,connection){
 			if(kutils.checkError(err,res)){
 				kutils.ok(res);
 				services.deleteFile(getPicturePathFromId(itemId));
 				services.deleteFile(getMiniPicPathFromId(itemId));
 			}
-		});
+			connection.release();
+		}));
 	}else{
 		kutils.forbiden(res);
 	}
@@ -284,7 +298,7 @@ app.post("/items",function(req,res){
 		}
 		var exReg = /.*(\.[a-z]*)$/; //regex pour trouver l'extension du fichier
 		var extension = photo.path.replace(exReg,"$1");
-		services.newItem(req.session.user_id, req.body,function(err,results){
+		pool.getConnection(services.newItem(req.session.user_id, req.body,function(err,results,connection){
 			if(kutils.checkError(err,res)){
 				var id = results[0];
 				services.savePictures(photo.path, id, function (err) {
@@ -295,7 +309,8 @@ app.post("/items",function(req,res){
 			}else{
 				services.deleteFile(photo.path);
 			}
-		});
+			connection.release();
+		}));
 	}else{
 		kutils.forbiden(res);
 	}
@@ -314,13 +329,14 @@ app.get("/items/my/detail/:itemId",function(req,res){
 			kutils.badRequest(res);
 			return;
 		}
-		services.getMyItem(itemId, req.session.user_id,function(err,results){
+		pool.getConnection(services.getMyItem(itemId, req.session.user_id,function(err,results,connection){
 			if(kutils.checkError(err,res)){
 				var itemDetails = results[0];
 				res.contentType('application/json');
 				res.send(JSON.stringify(itemDetails));
 			}
-		});
+			connection.release();
+		}));
 	}else{
 		kutils.forbiden(res);
 	}
@@ -340,11 +356,12 @@ app.put("/items/detail/:itemId",function(req,res){
 			kutils.badRequest(res);
 			return;
 		}
-		services.editItem(req.session.user_id, req.body, itemId, function(err,results){
+		pool.getConnection(services.editItem(req.session.user_id, req.body, itemId, function(err,results,connection){
 			if(kutils.checkError(err,res)){
 				kutils.ok(res);
 			}
-		});
+			connection.release();
+		}));
 	}else{
 		kutils.forbiden(res);
 	}
@@ -363,13 +380,14 @@ app.get("/items/category/:category",function(req,res){
 		kutils.badRequest(res);
 		return;
 	}
-	services.getItemByCategory(category,function(err,results){
+	pool.getConnection(services.getItemByCategory(category,function(err,results,connection){
 		if(kutils.checkError(err,res)){
 			var itemList = results[0];
 			res.contentType('application/json');
 			res.send(JSON.stringify(itemList));
 		}
-	});
+		connection.release();
+	}));
 });
 /* fonction déplacée : getItemByCategory */
 
@@ -385,13 +403,14 @@ app.get("/items/keyword/:keyword",function(req,res){
 		kutils.badRequest(res);
 		return;
 	}
-	services.getItemByName(keyword,function(err,results){
+	pool.getConnection(services.getItemByName(keyword,function(err,results,connection){
 		if(kutils.checkError(err,res)){
 			var itemList = results[0];
 			res.contentType('application/json');
 			res.send(JSON.stringify(itemList));
 		}
-	});
+		connection.release();
+	}));
 });
 /* fonction déplacée : getItemByName */
 
@@ -406,13 +425,14 @@ app.get("/items/detail/:itemId",function(req,res){
 		kutils.badRequest(res);
 		return;
 	}
-	services.getItemDetail(itemId,req.session.user_id,function(err,results){
+	pool.getConnection(services.getItemDetail(itemId,req.session.user_id,function(err,results,connection){
 		if(kutils.checkError(err,res)){
 			var itemDetails = results[0];
 			res.contentType('application/json');
 			res.send(JSON.stringify(itemDetails));
 		}
-	});
+		connection.release();
+	}));
 });
 /* fonction déplacée : getItemDetail */
 
@@ -430,7 +450,14 @@ app.get("/messages/:itemId/:contactId",function(req,res){
 			kutils.badRequest(res);
 			return;
 		}
-		services.getConversationDetail(itemId,contactId,services.getMessagesList(itemId,contactId,req.session.user_id,function(err,results){
+		// FIXME : voir comment je fais le pool.getConnection( ici ???
+		// sachant qu'en supprimant le async je l'ai déjà pété de toute façon
+
+		pool.getConnection(function(err,connexion){
+			
+
+		}
+		/*services.getConversationDetail(itemId,contactId,services.getMessagesList(itemId,contactId,req.session.user_id,function(err,results){
 			if(kutils.checkError(err,res)){
 				var convDetails = results[0];
 				markAsRead(req.session.user_id,contactId,itemId);
@@ -439,6 +466,7 @@ app.get("/messages/:itemId/:contactId",function(req,res){
 				res.send(JSON.stringify(convDetails));
 			}
 		}));
+		*/
 	}else{
 		kutils.forbiden(res);
 	}
@@ -457,7 +485,7 @@ app.post("/messages/:itemId/:contactId",function(req,res){
 			kutils.badRequest(res);
 			return;
 		}
-		services.newMessage(itemId, req.session.user_id, contactId, req.body.message,function(err,results){
+		pool.getConnection(services.newMessage(itemId, req.session.user_id, contactId, req.body.message,function(err,results,connection){
 			if(kutils.checkError(err,res)){
 				var eventString = contactId+req.session.user_id+itemId;
 				var msg = {
@@ -480,7 +508,8 @@ app.post("/messages/:itemId/:contactId",function(req,res){
 				}
 				kutils.ok(res);
 			}
-		});
+			connection.release();
+		}));
 	}else{
 		kutils.forbiden(res);
 	}
@@ -494,7 +523,7 @@ app.post("/messages/:itemId/:contactId",function(req,res){
 app.get("/messages/conversations",function(req,res){
 	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
 		var myId = req.session.user_id;
-		services.getConversationsList(myId,function(err,results){
+		pool.getConnection(services.getConversationsList(myId,function(err,results,connection){
 			var convList = !err?results[0]:null;
 			listUnread(err,myId,convList,function(err,cL){
 				if(kutils.checkError(err,res)){
@@ -502,8 +531,9 @@ app.get("/messages/conversations",function(req,res){
 					res.send(JSON.stringify(cL));
 				}
 			});
+			connection.release();
 			
-		});
+		}));
 	}else{
 		kutils.forbiden(res);
 	}
