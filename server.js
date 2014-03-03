@@ -1,12 +1,4 @@
 var express = require('express');
-var mysql = require('mysql');
-var pool = mysql.createPool({
-	host:'localhost',
-	user:'root',
-	password:'azerty',
-	database:'raclette'
-});
-var uuid = require('node-uuid').v4;
 var async = require('async');
 var check = require('validator').check;
 var fs = require('fs');
@@ -17,6 +9,9 @@ var RedisStore = require("connect-redis")(express);
 var redis = require("redis").createClient();
 
 var imagemagick = require('imagemagick');
+
+var services = require('./services');
+var kutils = require('./kutils');
 
 var app = express();
 
@@ -53,78 +48,6 @@ app.use("/css", express.static(__dirname + '/css'));
 app.use("/angular", express.static(__dirname + '/angular'));
 app.use("/libs_js", express.static(__dirname + '/libs_js'));
 app.use("/img", express.static(__dirname + '/img'));
-
-///////////////////////////////////////
-// fonctions utilitaires (elle partiront dans un module à part plus tard)
-var kutils = {};
-
-kutils.notFound = function(res){
-	res.send(404); 
-}
-
-kutils.badRequest = function(res){
-	res.send(400); 
-}
-
-kutils.forbiden = function(res){
-	res.send(401,"vous n'avez pas la permission d'accéder à cette interface");
-}
-
-kutils.error = function(res,err){
-	res.send(500,err); 
-}
-// fonction qui sert à évaluer les erreurs
-// return true s'il n'y a pas d'erreur
-// mais s'il y a une erreur, elle envoie une réponse http avec le bon code d'erreur et retourne false
-kutils.checkError = function(err,res){
-	if(err){
-		console.log(err);
-	}
-	switch(err){
-		case null :
-		case "" :
-		break;
-		case "notFound" : 
-			kutils.notFound (res);
-		break;
-		case "badRequest":
-			kutils.badRequest(res);
-		break;
-		case "forbiden":
-			kutils.forbiden(res);
-		break;
-		default:
-			kutils.error(res,err);
-		break;
-	}
-	return !err;
-}
-
-kutils.ok = function(res){
-	res.send(200);
-}
-kutils.created = function(res){
-	res.send(201);
-}
-
-//retourne un uuid sous forme de string
-kutils.uuid = function(){
-	var buff = new Buffer(32);
-	uuid(null,buff);
-	return uuid.unparse(buff);
-}
-
-/* Pour contrôler les écritures en base : 
-on vérifie si une erreur est retournée par le SGBD,
-puis, s'il n'y en a pas : vérifie que quelque chose a été écrit 
-si ce n'est pas le cas on retourne une erreur : "pas d'écriture dans la base de données"
-*/
-kutils.checkUpdateErr = function (err,results){
-	if(!err && (!results || (results && results.affectedRows == 0))){
-		err = "pas d'écriture dans la base de données";
-	}
-	return err;
-}
 
 
 ////////////////////////////////////////
@@ -212,8 +135,7 @@ app.get("/users/:login/:password",function(req,res){
 		kutils.badRequest(res);
 		return;
 	}
-	//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
-	doLogin(login,password,function(err,result){
+	services.doLogin(login,password,function(err,result){
 		if(kutils.checkError(err,res)){
 			req.session.user_id=result[0];
 			kutils.ok(res);				
@@ -221,27 +143,7 @@ app.get("/users/:login/:password",function(req,res){
 	});
 });
 
-function doLogin(login, password, callback){ 
-	pool.getConnection(function(err,connection){
-		//on s'assure que l'appel d'une connection dans le pool se passe bien.
-		if(err){
-			callback(err);
-			return;
-		}
-		connection.query('SELECT id FROM user WHERE login = ? AND password = SHA2(?, 224)', [login,password], function(err, rows) {
-			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-			var id = null;
-			if(!err){
-				if(rows && rows.length != 0){
-						id = rows[0].id;
-				}else{
-					err = "forbiden";
-				}
-			}
-			callback(err,id);
-		});
-	});
-}
+/* fonction déplacée : doLogin*/
 
 /*================================================
 	Inscription
@@ -262,8 +164,8 @@ app.post("/users",function(req,res){
 		kutils.badRequest(res);
 		return;
 	}
-	//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
-	createUser(req.body,function(err,results){
+	
+	services.createUser(req.body,function(err,results){
 		if(kutils.checkError(err,res)){
 			req.session.user_id=results[0];
 			kutils.created(res);
@@ -271,22 +173,7 @@ app.post("/users",function(req,res){
 	});
 });
 
-function createUser(user, callback){
-	var id = kutils.uuid();
-	pool.getConnection(function(err,connection){
-		//on s'assure que l'appel d'une connection dans le pool se passe bien.
-		if(err){
-			callback(err);
-			return;
-		}
-		connection.query('INSERT INTO user (id, login, name, password ,city, tel) \
-		VALUES (?,?,?,SHA2(?, 224),?,?)', [id, user.login, user.name, user.password, user.city, user.tel], function(err, results) {
-			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-			err = kutils.checkUpdateErr(err,results);
-			callback(err,id);
-		});
-	});
-}
+/* fonction déplacée : createUser */
 
 /* ==================================================
 	Dashboard
@@ -294,8 +181,8 @@ function createUser(user, callback){
 
 app.get("/users/my",function(req,res){
 	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
-		//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
-		getUserInfo(req.session.user_id,function(err,results){
+		
+		services.getUserInfo(req.session.user_id,function(err,results){
 			if(kutils.checkError(err,res)){
 				res.contentType('application/json');
 				res.send(JSON.stringify(results[0])); 
@@ -306,33 +193,7 @@ app.get("/users/my",function(req,res){
 	}
 });
 
-/*
-  getUserInfo : récupère les informations de base sur un utilisateur, elle est utilisée un grand nombre de fois, pas seulement pour le dashboard
-  fonction faite pour être appelée avec async
-*/
-
-function getUserInfo(userId, callback){
-	pool.getConnection(function(err,connection){
-		//on s'assure que l'appel d'une connection dans le pool se passe bien.
-		if(err){
-			callback(err);
-			return;
-		}
-		connection.query('SELECT name, id, city FROM user WHERE id = ?', [userId], function(err, rows) {
-			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-			var userData = null;
-			if(!err){
-				if(rows && rows.length!=0){
-					userData = rows[0];
-				}else{
-					err = "notFound";
-				}
-			}
-			callback(err,userData);
-		});
-	});
-}
-
+/* fonction déplacée : getUserInfo*/
 
 app.get("/deconnexion",function(req,res){
 	if(req.session.user_id){
@@ -344,28 +205,14 @@ app.get("/deconnexion",function(req,res){
 });
 
 app.get("/categories",function(req,res){
-	getCategories(function(err,results){
+	services.getCategories(function(err,results){
 		if(kutils.checkError(err,res)){
 			res.contentType('application/json');
 			res.send(JSON.stringify(results[0])); 
 		}
 	}); 
 });
-
-function getCategories(callback){
-	pool.getConnection(function(err,connection){
-		//on s'assure que l'appel d'une connection dans le pool se passe bien.
-		if(err){
-			callback(err);
-			return;
-		}
-		//le fonctionnement du système impose que les id des catégories soient des entiers consécutifs de 0 à nombre_catégorie-1 => categorie[4].id == 4
-		connection.query('SELECT label, id FROM category ORDER BY id', [], function(err, rows) {
-			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-			callback(err,rows);
-		});
-	});
-}
+/* fonction déplacée : getCategories*/
 
 /*================================================
 	Mes objets
@@ -373,8 +220,8 @@ function getCategories(callback){
 
 app.get("/items/my",function(req,res){
 	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
-		//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
-		getItemList(req.session.user_id,function(err,results){
+		
+		services.getItemList(req.session.user_id,function(err,results){
 			if(kutils.checkError(err,res)){
 				var itemsList = results[0];
 				res.contentType('application/json');
@@ -385,28 +232,7 @@ app.get("/items/my",function(req,res){
 		kutils.forbiden(res);
 	}
 });
-
-/*
-  getItemList : récupère la liste des objets appartenant à l'utilisateur dont l'id vaut : userId
-  cette fonction retourne une fonction qui peut être utilisée par async pour paralléliser les tâches : 
-    i.e. une fonction prenant un seul paramètre qui est une fonction "callback".
-
-    Toutes les fonctions d'accès à la base de donnée seront de cette forme là, celà permettra de pouvoir les paralléliser sans peine
-*/
-
-function getItemList(userId, callback){
-	pool.getConnection(function(err,connection){
-		//on s'assure que l'appel d'une connection dans le pool se passe bien.
-		if(err){
-			callback(err);
-			return;
-		}
-		connection.query('SELECT name, id FROM item WHERE user_id=?', [userId], function(err, rows) {
-			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-			callback(err,rows);
-		});
-	});
-}
+/* fonction déplacée :  getItemList*/
 
 app.delete("/items/detail/:itemId",function(req,res){
 	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
@@ -417,39 +243,19 @@ app.delete("/items/detail/:itemId",function(req,res){
 			kutils.badRequest(res);
 			return;
 		}		
-		//ici l'utilisation de async n'est pas indispensable, mais par soucis de cohérence de l'ensemble je l'utilise quand même
-		deleteItem(req.session.user_id, itemId, function(err,results){
+		
+		services.deleteItem(req.session.user_id, itemId, function(err,results){
 			if(kutils.checkError(err,res)){
 				kutils.ok(res);
-				deleteFile(getPicturePathFromId(itemId));
-				deleteFile(getMiniPicPathFromId(itemId));
+				services.deleteFile(getPicturePathFromId(itemId));
+				services.deleteFile(getMiniPicPathFromId(itemId));
 			}
 		});
 	}else{
 		kutils.forbiden(res);
 	}
 });
-
-
-/*
-  deleteItem : fonction assurant la suppression d'un objet dans la base de donnée pour peu qu'on ai les droits sur cet objet.
-*/
-
-function deleteItem(userId, itemId, callback){
-	pool.getConnection(function(err,connection){
-		//on s'assure que l'appel d'une connection dans le pool se passe bien.
-		if(err){
-			callback(err);
-			return;
-		}
-		connection.query('DELETE FROM item WHERE user_id = ? AND id = ?', [userId, itemId] , function(err, results) {
-			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-			err = kutils.checkUpdateErr(err,results);
-			callback(err);
-		});
-	});
-}
-
+/* fonction déplacée : deleteItem */
 
 /*================================================
 	Nouvel objet
@@ -471,94 +277,30 @@ app.post("/items",function(req,res){
 			}
 		} catch (e){
 			if(photo && photo.path){
-				deleteFile(photo.path);
+				services.deleteFile(photo.path);
 			}
 			kutils.badRequest(res);
 			return;
 		}
 		var exReg = /.*(\.[a-z]*)$/; //regex pour trouver l'extension du fichier
 		var extension = photo.path.replace(exReg,"$1");
-		newItem(req.session.user_id, req.body,function(err,results){
+		services.newItem(req.session.user_id, req.body,function(err,results){
 			if(kutils.checkError(err,res)){
 				var id = results[0];
-				savePictures(photo.path, id, function (err) {
+				services.savePictures(photo.path, id, function (err) {
 					if(kutils.checkError(err,res)){
 						kutils.ok(res);
 					}
 				});
 			}else{
-				deleteFile(photo.path);
+				services.deleteFile(photo.path);
 			}
 		});
 	}else{
 		kutils.forbiden(res);
 	}
 });
-
-function savePictures(uploadPath,itemId,callback){
-	var itemPicPath = getPicturePathFromId(itemId);
-	var itemMiniPicPath = getMiniPicPathFromId(itemId);
-	var bigX=320;
-	var bigY=380;
-	var miniX =75;
-	var miniY =75;
-	
-	var bigDimensions = bigX+"x"+bigY;
-	var miniDimensions = miniX+"x"+miniY;
-	
-	async.parallel([
-		function(async_callback){
-			imagemagick.convert([uploadPath,'-resize', bigDimensions, itemPicPath], function(err, stdout){
-				console.log("grosse image crée pour l'item :"+itemId);
-				async_callback(err);
-			});
-		},
-		function(async_callback){
-			imagemagick.convert([uploadPath,'-resize', miniDimensions, itemMiniPicPath], function(err, stdout){
-				console.log("mini image crée pour l'item :"+itemId);
-				async_callback(err);
-			});
-		}
-	],
-	function(err, results) {
-		deleteFile(uploadPath);
-		callback(err);
-	});
-}
-
-function deleteFile(path){
-	fs.unlink(path, function (err) {
-		if (err){
-			console.log(err);
-			console.log('impossible de supprimer '+ path);
-		}else{
-			console.log('successfully deleted '+ path);		
-		}				
-	});
-}
-
-
-/*
-  newItem : prend les infos correspondant au nouvel objet
-  et créé cet objet dans la base
-*/
-
-function newItem(userId, item, callback){
-	var id = kutils.uuid();
-		pool.getConnection(function(err,connection){
-			//on s'assure que l'appel d'une connection dans le pool se passe bien.
-			if(err){
-				callback(err);
-				return;
-			}
-			connection.query('INSERT INTO item (id, user_id, name, description, category) \
-			VALUES (?,?,?,?,?)', [id, userId, item.nom_objet, item.description, item.category], function(err, results) {
-				connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-				err = kutils.checkUpdateErr(err,results);		
-				callback(err,id);
-			});
-		});
-}
+/* fonctions déplacées : savePictures, deleteFile, newItem */
 
 /*================================================
 	Edit objet
@@ -572,7 +314,7 @@ app.get("/items/my/detail/:itemId",function(req,res){
 			kutils.badRequest(res);
 			return;
 		}
-		getMyItem(itemId, req.session.user_id,function(err,results){
+		services.getMyItem(itemId, req.session.user_id,function(err,results){
 			if(kutils.checkError(err,res)){
 				var itemDetails = results[0];
 				res.contentType('application/json');
@@ -583,28 +325,7 @@ app.get("/items/my/detail/:itemId",function(req,res){
 		kutils.forbiden(res);
 	}
 });
-
-function getMyItem(itemId, userId, callback){
-	pool.getConnection(function(err,connection){
-		//on s'assure que l'appel d'une connection dans le pool se passe bien.
-		if(err){
-			callback(err);
-			return;
-		}
-		connection.query('SELECT name, description, category FROM item WHERE item.id= ? AND user_id = ?', [itemId, userId], function(err, rows) {
-			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-			var itemDetails = null;
-			if(!err){
-				if(rows && rows.length!=0){
-					itemDetails = rows[0];
-				}else{
-					err = "notFound";
-				}
-			}
-			callback(err,itemDetails);
-		});
-	});
-}
+/* fonction déplacée : getMyItem */
 
 app.put("/items/detail/:itemId",function(req,res){
 	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
@@ -619,7 +340,7 @@ app.put("/items/detail/:itemId",function(req,res){
 			kutils.badRequest(res);
 			return;
 		}
-		editItem(req.session.user_id, req.body, itemId, function(err,results){
+		services.editItem(req.session.user_id, req.body, itemId, function(err,results){
 			if(kutils.checkError(err,res)){
 				kutils.ok(res);
 			}
@@ -628,21 +349,8 @@ app.put("/items/detail/:itemId",function(req,res){
 		kutils.forbiden(res);
 	}
 });
+/* fonction déplacée : editItem */
 
-function editItem(userId, item, itemId, callback){
-	pool.getConnection(function(err,connection){
-		//on s'assure que l'appel d'une connection dans le pool se passe bien.
-		if(err){
-			callback(err);
-			return;
-		}
-		connection.query('UPDATE `item` SET `name`=?,`description`=?,`category`=? WHERE id=? AND user_id = ?', [item.nom_objet, item.description, item.category, itemId, userId], function(err, results) {
-			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-			err = kutils.checkUpdateErr(err,results);		
-			callback(err);
-		});
-	});
-}
 /*================================================
 	recherche_categorie
 ==================================================*/
@@ -655,7 +363,7 @@ app.get("/items/category/:category",function(req,res){
 		kutils.badRequest(res);
 		return;
 	}
-	getItemByCategory(category,function(err,results){
+	services.getItemByCategory(category,function(err,results){
 		if(kutils.checkError(err,res)){
 			var itemList = results[0];
 			res.contentType('application/json');
@@ -663,25 +371,7 @@ app.get("/items/category/:category",function(req,res){
 		}
 	});
 });
-
-function getItemByCategory(category, callback){
-	pool.getConnection(function(err,connection){
-		//on s'assure que l'appel d'une connection dans le pool se passe bien.
-		if(err){
-			callback(err);
-			return;
-		}
-		connection.query('SELECT item.id as id, user.name as ownerName, item.name as name FROM item INNER JOIN user ON item.user_id=user.id WHERE item.category= ?', [category], function(err, rows) {
-			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-			if(!err){
-				if(!rows || rows.length==0){
-					err = "notFound";
-				}
-			}
-			callback(err,rows);
-		});
-	});
-}
+/* fonction déplacée : getItemByCategory */
 
 /*================================================
 	recherche_nom
@@ -695,7 +385,7 @@ app.get("/items/keyword/:keyword",function(req,res){
 		kutils.badRequest(res);
 		return;
 	}
-	getItemByName(keyword,function(err,results){
+	services.getItemByName(keyword,function(err,results){
 		if(kutils.checkError(err,res)){
 			var itemList = results[0];
 			res.contentType('application/json');
@@ -703,25 +393,7 @@ app.get("/items/keyword/:keyword",function(req,res){
 		}
 	});
 });
-
-function getItemByName(keyword){
-	pool.getConnection(function(err,connection){
-		//on s'assure que l'appel d'une connection dans le pool se passe bien.
-		if(err){
-			callback(err);
-			return;
-		}
-		connection.query('SELECT item.id as id, user.name as ownerName, item.name as name FROM item INNER JOIN user ON item.user_id=user.id WHERE MATCH (item.name,item.description) AGAINST (?)', [keyword], function(err, rows) {
-			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-			if(!err){
-				if(!rows || rows.length==0){
-					err = "notFound";
-				}
-			}
-			callback(err,rows);
-		});
-	});
-}
+/* fonction déplacée : getItemByName */
 
 /*================================================
 	Detail_objet
@@ -734,7 +406,7 @@ app.get("/items/detail/:itemId",function(req,res){
 		kutils.badRequest(res);
 		return;
 	}
-	getItemDetail(itemId,req.session.user_id,function(err,results){
+	services.getItemDetail(itemId,req.session.user_id,function(err,results){
 		if(kutils.checkError(err,res)){
 			var itemDetails = results[0];
 			res.contentType('application/json');
@@ -742,29 +414,7 @@ app.get("/items/detail/:itemId",function(req,res){
 		}
 	});
 });
-
-//ici le userId est là a titre informatif, on indiquera d'une façon spéciale dans la liste les objets qui m'appartiennent.
-function getItemDetail(itemId,userId, callback){
-	pool.getConnection(function(err,connection){
-		//on s'assure que l'appel d'une connection dans le pool se passe bien.
-		if(err){
-			callback(err);
-			return;
-		}
-		connection.query("SELECT if( item.user_id = ?, 'mine', '' ) as isMine, item.name as name, item.description as description, category.label as category, user.name as ownerName, item.user_id as ownerId FROM item INNER JOIN user ON item.user_id=user.id INNER JOIN category ON category.id=item.category WHERE item.id= ?", [userId, itemId], function(err, rows) {
-			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-			var itemDetails = null;
-			if(!err){
-				if(rows && rows.length!=0){
-					itemDetails = rows[0];
-				}else{
-					err = "notFound";
-				}
-			}
-			callback(err,itemDetails);
-		});
-	});
-}
+/* fonction déplacée : getItemDetail */
 
 /*================================================
 	Detail_conversation
@@ -780,7 +430,7 @@ app.get("/messages/:itemId/:contactId",function(req,res){
 			kutils.badRequest(res);
 			return;
 		}
-		getConversationDetail(itemId,contactId,getMessagesList(itemId,contactId,req.session.user_id,function(err,results){
+		services.getConversationDetail(itemId,contactId,services.getMessagesList(itemId,contactId,req.session.user_id,function(err,results){
 			if(kutils.checkError(err,res)){
 				var convDetails = results[0];
 				markAsRead(req.session.user_id,contactId,itemId);
@@ -793,61 +443,8 @@ app.get("/messages/:itemId/:contactId",function(req,res){
 		kutils.forbiden(res);
 	}
 });
-
-function getConversationDetail(itemId,contactId, callback){
-	pool.getConnection(function(err,connection){
-		//on s'assure que l'appel d'une connection dans le pool se passe bien.
-		if(err){
-			callback(err);
-			return;
-		}
-		connection.query("SELECT * \
-			FROM (\
-				SELECT name AS nom_contact\
-				FROM user\
-				WHERE id = ?\
-			)A, (\
-				SELECT name AS nom_objet\
-				FROM item\
-				WHERE id = ?\
-			)B", [contactId,itemId], function(err, rows) {
-			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-			var convDetails = null;
-			if(!err){
-				if(rows && rows.length!=0){
-					convDetails = rows[0];
-				}else{
-					err = "notFound";
-				}
-			}
-			callback(err,convDetails);
-		});
-	});
-}
-
-function getMessagesList(itemId,contactId,myId, callback){
-	pool.getConnection(function(err,connection){
-		//on s'assure que l'appel d'une connection dans le pool se passe bien.
-		if(err){
-			callback(err);
-			return;
-		}
-		connection.query("SELECT message.date, \
-							message.content, \
-							IF(message.sender_id = ?,'me','other') AS sender \
-						FROM \
-							message \
-						WHERE message.item_id = ? \
-							AND ( \
-							(message.sender_id = ? AND message.receiver_id = ?) OR (message.sender_id = ? AND message.receiver_id = ?) \
-							) \
-						ORDER BY message.date; ", [myId,itemId,myId,contactId,contactId,myId], function(err, rows) {
-			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-			var msgList = rows;
-			callback(err,msgList);
-		});
-	});
-}
+/* fonction déplacée : getConversationDetail */
+/* fonction déplacée : getMessagesList */
 
 app.post("/messages/:itemId/:contactId",function(req,res){
 	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
@@ -860,7 +457,7 @@ app.post("/messages/:itemId/:contactId",function(req,res){
 			kutils.badRequest(res);
 			return;
 		}
-		newMessage(itemId, req.session.user_id, contactId, req.body.message,function(err,results){
+		services.newMessage(itemId, req.session.user_id, contactId, req.body.message,function(err,results){
 			if(kutils.checkError(err,res)){
 				var eventString = contactId+req.session.user_id+itemId;
 				var msg = {
@@ -888,23 +485,7 @@ app.post("/messages/:itemId/:contactId",function(req,res){
 		kutils.forbiden(res);
 	}
 });
-
-
-function newMessage(itemId, myId, contactId, message, callback){
-	pool.getConnection(function(err,connection){
-		//on s'assure que l'appel d'une connection dans le pool se passe bien.
-		if(err){
-			callback(err);
-			return;
-		}
-		connection.query("INSERT INTO message (item_id, sender_id, content, date, receiver_id ) \
-SELECT ?, ?, ?, NOW(), ? FROM item WHERE id = ? AND (user_id = ? OR user_id = ?)", [itemId, myId, message, contactId, itemId, myId, contactId] , function(err, results) {
-			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-			err = kutils.checkUpdateErr(err,results);
-			callback(err);
-		});
-	});
-}
+/* fonction déplacée : newMessage */
 
 /*================================================
 	Mes_conversations
@@ -913,7 +494,7 @@ SELECT ?, ?, ?, NOW(), ? FROM item WHERE id = ? AND (user_id = ? OR user_id = ?)
 app.get("/messages/conversations",function(req,res){
 	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
 		var myId = req.session.user_id;
-		getConversationsList(myId,function(err,results){
+		services.getConversationsList(myId,function(err,results){
 			var convList = !err?results[0]:null;
 			listUnread(err,myId,convList,function(err,cL){
 				if(kutils.checkError(err,res)){
@@ -927,27 +508,7 @@ app.get("/messages/conversations",function(req,res){
 		kutils.forbiden(res);
 	}
 });
-
-function getConversationsList(myId, callback){
-	pool.getConnection(function(err,connection){
-		//on s'assure que l'appel d'une connection dans le pool se passe bien.
-		if(err){
-			callback(err);
-			return;
-		}
-		connection.query("SELECT DISTINCT user.id AS contact_id, user.name AS contact_name, item.id AS item_id, item.name AS item_name \
-						FROM (\
-							SELECT item_id, IF( message.sender_id = ?, message.receiver_id, IF( message.receiver_id = ?, message.sender_id, NULL ) ) AS contact_id \
-							FROM message \
-						)A \
-						INNER JOIN user ON A.contact_id = user.id\
-						INNER JOIN item ON A.item_id = item.id", [myId,myId], function(err, rows) {
-			connection.release();//on libère la connexion pour la remettre dans le pool dès qu'on n'en a plus besoin
-			var convList = rows;
-			callback(err,convList);
-		});
-	});
-}
+/* fonction déplacée : getConversationsList */
 
 /////  Notifications des messages
 
