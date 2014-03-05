@@ -3,14 +3,14 @@
   "description": "version de dev de racletteShare",
   "version": "0.0.1",
   "dependencies": {
-    "express": "3.x",
-    "mysql": "x",
-    "async": "x",
-    "node-uuid":"x",
-	"validator":"x",
-	"redis":"x",
-	"connect-redis":"x",
-	"imagemagick":"x"
+    "express": "3.4.0",
+    "mysql": "2.0.0",
+    "async": "0.2.9",
+    "node-uuid":"1.4.1",
+	"validator":"1.5.1",
+	"redis":"0.9.0",
+	"connect-redis":"1.4.5",
+	"imagemagick":"0.1.3"
   }
 }
 
