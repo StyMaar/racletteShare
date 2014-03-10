@@ -7,7 +7,18 @@ var mysql = require('mysql');
 
 describe('Utilisateurs', function(){
   describe('createUser(user, callback)', function(){
-    it('should create a user',function(){
+	it('should manage to connect to the database',function(){
+		var connection = mysql.createConnection({
+			host:'localhost',
+			user:'root',
+			password:'1234poney',
+			database:'raclette'
+		});
+		console.log(connection);
+	});
+
+
+    it('should create a user'/*,function(done){
 
 		var connection = mysql.createConnection({
 			host:'localhost',
@@ -28,9 +39,11 @@ describe('Utilisateurs', function(){
 			services.createUser(user,function(err,id){
 				(err == null).should.be.true;
 				(id == null).should.be.false;
+				connection.rollback(function(){});
+				done();
 			})(null,connection);
-			connection.rollback(function(){});
 		});
-	});
+	}*/);
+
   });
 });
