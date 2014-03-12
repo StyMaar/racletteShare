@@ -137,7 +137,7 @@ exports.deleteItem = function deleteItem(userId, itemId, callback){
 
 //Bloc avec le Delete file : savePictures, deleteFile, newItem.
 
-exports.savePictures = function savePictures(uploadPath,itemId,callback){
+exports.savePictures = function savePictures(uploadPath,itemId,getPicturePathFromId,getMiniPicPathFromId,callback){
 	var itemPicPath = getPicturePathFromId(itemId);
 	var itemMiniPicPath = getMiniPicPathFromId(itemId);
 	var bigX=320;
@@ -292,7 +292,7 @@ exports.getItemDetail = function getItemDetail(itemId,userId, callback){
 			callback(err,null,connection);
 			return;
 		}
-		connection.query("SELECT if( item.user_id = ?, 'mine', '' ) as isMine, item.name as name, item.description as description, category.label as category, user.name as ownerName, item.user_id as ownerId FROM item INNER JOIN user ON item.user_id=user.id INNER JOIN category ON category.id=item.category WHERE item.id= ?", [userId, itemId], function(err, rows) {
+		connection.query("SELECT if( item.user_id = ?, 'mine', '' ) as isMine, item.name as name, item.description as description, category.label as category_label, category.id as category_id, user.name as ownerName, item.user_id as ownerId FROM item INNER JOIN user ON item.user_id=user.id INNER JOIN category ON category.id=item.category WHERE item.id= ?", [userId, itemId], function(err, rows) {
 			
 			var itemDetails = null;
 			if(!err){

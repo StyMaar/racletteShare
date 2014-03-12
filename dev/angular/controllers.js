@@ -359,7 +359,10 @@ angular.module('controllers', ['racletteModules']).
 		$scope.itemId = $routeParams.itemId;
 		$http.get('/items/detail/'+$scope.itemId).success(function(data) {				
 			$scope.nom_objet=data.name;
-			$scope.category=data.category;
+			$scope.category= {
+				label:data.category_label,
+				id:data.category_id
+			};
 			$scope.description=data.description;
 			$scope.contactName=data.ownerName;
 			$scope.contactId=data.ownerId;

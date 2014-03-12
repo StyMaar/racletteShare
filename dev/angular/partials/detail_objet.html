@@ -9,7 +9,7 @@
 <section id="detail_objet" ng-hide="!hiddenMessage">
 	<img ng-src="/items/pictures/{{itemId}}" alt="photo de l'objet"/>
 	<h4>{{nom_objet}}, prêté par {{contactName}}</h4>
-	<h4>Catégorie : <a href="#/items/category/{{category}}">{{category}}</a></h6>
+	<h4>Catégorie : <a href="#/items/category/{{category.id}}">{{category.label}}</a></h6>
 	<p id="description">
 		{{description}}
 	</p>

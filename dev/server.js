@@ -301,7 +301,7 @@ app.post("/items",function(req,res){
 		pool.getConnection(services.newItem(req.session.user_id, req.body,function(err,results,connection){
 			if(kutils.checkError(err,res)){
 				var id = results;
-				services.savePictures(photo.path, id, function (err) {
+				services.savePictures(photo.path, id, getPicturePathFromId, getMiniPicPathFromId function (err) {
 					if(kutils.checkError(err,res)){
 						kutils.ok(res);
 					}
