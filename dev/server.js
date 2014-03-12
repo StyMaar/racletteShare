@@ -453,10 +453,10 @@ app.get("/messages/:itemId/:contactId",function(req,res){
 		// FIXME : voir comment je fais le pool.getConnection( ici ???
 		// sachant qu'en supprimant le async je l'ai déjà pété de toute façon
 
-		pool.getConnection(function(err,connexion){
+		// pool.getConnection(function(err,connexion){
 			
 
-		}
+		// }
 		/*services.getConversationDetail(itemId,contactId,services.getMessagesList(itemId,contactId,req.session.user_id,function(err,results){
 			if(kutils.checkError(err,res)){
 				var convDetails = results[0];
