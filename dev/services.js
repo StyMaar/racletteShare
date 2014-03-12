@@ -264,7 +264,7 @@ exports.getItemByCategory = function getItemByCategory(category, callback){
 	}
 }
 
-exports.getItemByName = function getItemByName(keyword){
+exports.getItemByName = function getItemByName(keyword, callback){
 	return function(err,connection){
 		//on s'assure que l'appel d'une connection dans le pool se passe bien.
 		if(err){

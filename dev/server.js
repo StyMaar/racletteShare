@@ -176,7 +176,7 @@ app.post("/users",function(req,res){
 	
 	pool.getConnection(services.createUser(req.body,function(err,results,connection){
 		if(kutils.checkError(err,res)){
-			req.session.user_id=results[0];
+			req.session.user_id=results;
 			kutils.created(res);
 		}
 		connection.release();
@@ -195,7 +195,7 @@ app.get("/users/my",function(req,res){
 		pool.getConnection(services.getUserInfo(req.session.user_id,function(err,results,connection){
 			if(kutils.checkError(err,res)){
 				res.contentType('application/json');
-				res.send(JSON.stringify(results[0])); 
+				res.send(JSON.stringify(results)); 
 			}
 			connection.release();
 		}));
@@ -219,7 +219,7 @@ app.get("/categories",function(req,res){
 	pool.getConnection(services.getCategories(function(err,results,connection){
 		if(kutils.checkError(err,res)){
 			res.contentType('application/json');
-			res.send(JSON.stringify(results[0])); 
+			res.send(JSON.stringify(results)); 
 		}
 		connection.release();
 	})); 
@@ -235,7 +235,7 @@ app.get("/items/my",function(req,res){
 		
 		pool.getConnection(services.getItemList(req.session.user_id,function(err,results,connection){
 			if(kutils.checkError(err,res)){
-				var itemsList = results[0];
+				var itemsList = results;
 				res.contentType('application/json');
 				res.send(JSON.stringify(itemsList));
 			}
@@ -300,7 +300,7 @@ app.post("/items",function(req,res){
 		var extension = photo.path.replace(exReg,"$1");
 		pool.getConnection(services.newItem(req.session.user_id, req.body,function(err,results,connection){
 			if(kutils.checkError(err,res)){
-				var id = results[0];
+				var id = results;
 				services.savePictures(photo.path, id, function (err) {
 					if(kutils.checkError(err,res)){
 						kutils.ok(res);
@@ -331,7 +331,7 @@ app.get("/items/my/detail/:itemId",function(req,res){
 		}
 		pool.getConnection(services.getMyItem(itemId, req.session.user_id,function(err,results,connection){
 			if(kutils.checkError(err,res)){
-				var itemDetails = results[0];
+				var itemDetails = results;
 				res.contentType('application/json');
 				res.send(JSON.stringify(itemDetails));
 			}
@@ -382,7 +382,7 @@ app.get("/items/category/:category",function(req,res){
 	}
 	pool.getConnection(services.getItemByCategory(category,function(err,results,connection){
 		if(kutils.checkError(err,res)){
-			var itemList = results[0];
+			var itemList = results;
 			res.contentType('application/json');
 			res.send(JSON.stringify(itemList));
 		}
@@ -405,7 +405,7 @@ app.get("/items/keyword/:keyword",function(req,res){
 	}
 	pool.getConnection(services.getItemByName(keyword,function(err,results,connection){
 		if(kutils.checkError(err,res)){
-			var itemList = results[0];
+			var itemList = results;
 			res.contentType('application/json');
 			res.send(JSON.stringify(itemList));
 		}
@@ -427,7 +427,7 @@ app.get("/items/detail/:itemId",function(req,res){
 	}
 	pool.getConnection(services.getItemDetail(itemId,req.session.user_id,function(err,results,connection){
 		if(kutils.checkError(err,res)){
-			var itemDetails = results[0];
+			var itemDetails = results;
 			res.contentType('application/json');
 			res.send(JSON.stringify(itemDetails));
 		}
@@ -524,7 +524,7 @@ app.get("/messages/conversations",function(req,res){
 	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
 		var myId = req.session.user_id;
 		pool.getConnection(services.getConversationsList(myId,function(err,results,connection){
-			var convList = !err?results[0]:null;
+			var convList = !err?results:null;
 			listUnread(err,myId,convList,function(err,cL){
 				if(kutils.checkError(err,res)){
 					res.contentType('application/json');
