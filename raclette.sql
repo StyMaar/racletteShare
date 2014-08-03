@@ -77,9 +77,12 @@ CREATE TABLE IF NOT EXISTS `item` (
   `description` varchar(255) DEFAULT NULL,
   `category` int(10) NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `user_ID` (`user_id`),
-  FULLTEXT KEY `rechercheNom` (`name`,`description`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+  KEY `user_ID` (`user_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+-- avec InnoDB on a des transactions, mais pas d'index full texte dans cette version de mysql (à partir de la 5.6 seulement)
+-- ,
+-- FULLTEXT KEY `rechercheNom` (`name`,`description`)
+-- ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for table `message`
