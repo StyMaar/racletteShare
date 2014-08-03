@@ -18,6 +18,7 @@ var pool = mysql.createPool({
 	database:'raclette'
 });
 
+
 var services = require('./services');
 var kutils = require('./kutils');
 
@@ -31,18 +32,18 @@ app.use(express.cookieParser());
 app.use(express.session({
 	secret:"azerty",
 	cookie:{
-		path: '/', 
-		httpOnly: true, 
-		maxAge: 8640000000 
+		path: '/',
+		httpOnly: true,
+		maxAge: 8640000000
 	},
 	store: new RedisStore({
 		host: 'localhost',
-		port: 6379, 
+		port: 6379,
 		client: redis
 	})
 })); //la session reste ouverte pendant 100 jours par défaut
 
-// Rq : pour accédr aux infos de la session : req.session.bob 
+// Rq : pour accédr aux infos de la session : req.session.bob
 //end sessions
 
 //pour lire le contenu d'une requête post ou PUT
@@ -66,7 +67,7 @@ app.get('/', function (req, res) {
 });
 
 
-//traitement des images de profil 
+//traitement des images de profil
 app.get('/users/pictures/my', function (req, res) {
 	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette image
 		res.sendfile(__dirname + '/pictures/avatar2.png');
@@ -79,7 +80,7 @@ app.get('/users/pictures/:userId', function (req, res) {
 	res.sendfile(__dirname + '/pictures/avatar1.png');
 });
 
-//traitement des images des objets 
+//traitement des images des objets
 app.get('/items/pictures/:itemId', function (req, res) {
 	try {
 		check(req.params.itemId).isUUIDv4();
@@ -95,7 +96,7 @@ app.get('/items/pictures/:itemId', function (req, res) {
 	}
 });
 
-//traitement des miniatures des objets 
+//traitement des miniatures des objets
 app.get('/items/minipic/:itemId', function (req, res) {
 	try {
 		check(req.params.itemId).isUUIDv4();
@@ -112,11 +113,11 @@ app.get('/items/minipic/:itemId', function (req, res) {
 });
 
 function getPicturePathFromId(itemId){
-	return __dirname + '/pictures/big/'+itemId+'.jpg'
-};
+	return __dirname + '/pictures/big/'+itemId+'.jpg';
+}
 
 function getMiniPicPathFromId(itemId){
-	return __dirname + '/pictures/mini/'+itemId+'.jpg'
+	return __dirname + '/pictures/mini/'+itemId+'.jpg';
 }
 
 
@@ -124,7 +125,7 @@ function getMiniPicPathFromId(itemId){
 	Connexion
 ===========================================================*/
 
-app.get("/checkLogin",function(req,res){		
+app.get("/checkLogin",function(req,res){
 	if(req.session.user_id){
 		kutils.ok(res);
 	}else{
@@ -146,7 +147,7 @@ app.get("/users/:login/:password",function(req,res){
 	pool.getConnection(services.doLogin(login,password,function(err,result,connection){
 		if(kutils.checkError(err,res)){
 			req.session.user_id=result[0];
-			kutils.ok(res);				
+			kutils.ok(res);
 		}
 		connection.release();
 	}));
@@ -167,13 +168,13 @@ app.post("/users",function(req,res){
 			check(req.body.city).len(2,64);
 		}
 		if(req.body.tel){//si un numéro de tel est renseigné, on s'assure que c'est bien un numéro de tel
-			check(req.body.tel).regex(/^[0-9\- .+]{10,17}$/);	
+			check(req.body.tel).regex(/^[0-9\- .+]{10,17}$/);
 		}
 	} catch (e){
 		kutils.badRequest(res);
 		return;
 	}
-	
+
 	pool.getConnection(services.createUser(req.body,function(err,results,connection){
 		if(kutils.checkError(err,res)){
 			req.session.user_id=results;
@@ -191,11 +192,11 @@ app.post("/users",function(req,res){
 
 app.get("/users/my",function(req,res){
 	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
-		
+
 		pool.getConnection(services.getUserInfo(req.session.user_id,function(err,results,connection){
 			if(kutils.checkError(err,res)){
 				res.contentType('application/json');
-				res.send(JSON.stringify(results)); 
+				res.send(JSON.stringify(results));
 			}
 			connection.release();
 		}));
@@ -219,10 +220,10 @@ app.get("/categories",function(req,res){
 	pool.getConnection(services.getCategories(function(err,results,connection){
 		if(kutils.checkError(err,res)){
 			res.contentType('application/json');
-			res.send(JSON.stringify(results)); 
+			res.send(JSON.stringify(results));
 		}
 		connection.release();
-	})); 
+	}));
 });
 /* fonction déplacée : getCategories*/
 
@@ -232,7 +233,7 @@ app.get("/categories",function(req,res){
 
 app.get("/items/my",function(req,res){
 	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
-		
+
 		pool.getConnection(services.getItemList(req.session.user_id,function(err,results,connection){
 			if(kutils.checkError(err,res)){
 				var itemsList = results;
@@ -249,14 +250,14 @@ app.get("/items/my",function(req,res){
 
 app.delete("/items/detail/:itemId",function(req,res){
 	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
-		var itemId = req.params.itemId;	
-		try{		
+		var itemId = req.params.itemId;
+		try{
 			check(itemId).isUUIDv4() ;
 		} catch (e){
 			kutils.badRequest(res);
 			return;
-		}		
-		
+		}
+
 		pool.getConnection(services.deleteItem(req.session.user_id, itemId, function(err,results,connection){
 			if(kutils.checkError(err,res)){
 				kutils.ok(res);
@@ -280,10 +281,12 @@ app.post("/items",function(req,res){
 	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
 		try {
 			var photo = req.files.photo;
-			//ça ne sert à rien d'un point de vue sécurité puisque la sauvegarde a lieu quoi qu'il arrive mais bon ... 
+			//ça ne sert à rien d'un point de vue sécurité puisque la sauvegarde a lieu quoi qu'il arrive mais bon ...
 			check(photo.size).isInt();
 			check(photo.path).notNull();
-			if(photo.size>5000000){ throw new Exception()};
+			if(photo.size>5000000){
+				throw new Exception();
+			}
 			check(photo.headers['content-type']).is(/^image\.*/);
 			check(req.body.nom_objet).len(3,64);
 			if(req.body.description){ //si une description est renseignée, on s'assure que c'est bien une description
@@ -301,7 +304,7 @@ app.post("/items",function(req,res){
 		pool.getConnection(services.newItem(req.session.user_id, req.body,function(err,results,connection){
 			if(kutils.checkError(err,res)){
 				var id = results;
-				services.savePictures(photo.path, id, getPicturePathFromId, getMiniPicPathFromId function (err) {
+				services.savePictures(photo.path, id, getPicturePathFromId, getMiniPicPathFromId, function (err) {
 					if(kutils.checkError(err,res)){
 						kutils.ok(res);
 					}
@@ -322,8 +325,8 @@ app.post("/items",function(req,res){
 ==================================================*/
 app.get("/items/my/detail/:itemId",function(req,res){
 	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
-		var itemId = req.params.itemId;	
-		try{		
+		var itemId = req.params.itemId;
+		try{
 			check(itemId).isUUIDv4() ;
 		} catch (e){
 			kutils.badRequest(res);
@@ -373,8 +376,8 @@ app.put("/items/detail/:itemId",function(req,res){
 ==================================================*/
 
 app.get("/items/category/:category",function(req,res){
-	var category = req.params.category;	
-	try{		
+	var category = req.params.category;
+	try{
 		check(category).isNumeric();
 	} catch (e){
 		kutils.badRequest(res);
@@ -396,9 +399,9 @@ app.get("/items/category/:category",function(req,res){
 ==================================================*/
 
 app.get("/items/keyword/:keyword",function(req,res){
-	var keyword = req.params.keyword;	
-	try{		
-		
+	var keyword = req.params.keyword;
+	try{
+
 	} catch (e){
 		kutils.badRequest(res);
 		return;
@@ -418,8 +421,8 @@ app.get("/items/keyword/:keyword",function(req,res){
 	Detail_objet
 ==================================================*/
 app.get("/items/detail/:itemId",function(req,res){
-	var itemId = req.params.itemId;	
-	try{		
+	var itemId = req.params.itemId;
+	try{
 		check(itemId).isUUIDv4() ;
 	} catch (e){
 		kutils.badRequest(res);
@@ -443,7 +446,7 @@ app.get("/messages/:itemId/:contactId",function(req,res){
 	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
 		var itemId = req.params.itemId;
 		var contactId = req.params.contactId;
-		try{		
+		try{
 			check(itemId).isUUIDv4();
 			check(contactId).isUUIDv4();
 		} catch (e){
@@ -454,7 +457,7 @@ app.get("/messages/:itemId/:contactId",function(req,res){
 		// sachant qu'en supprimant le async je l'ai déjà pété de toute façon
 
 		// pool.getConnection(function(err,connexion){
-			
+
 
 		// }
 		/*services.getConversationDetail(itemId,contactId,services.getMessagesList(itemId,contactId,req.session.user_id,function(err,results){
@@ -478,7 +481,7 @@ app.post("/messages/:itemId/:contactId",function(req,res){
 	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
 		var contactId = req.params.contactId;
 		var itemId = req.params.itemId;
-		try{		
+		try{
 			check(itemId).isUUIDv4();
 			check(contactId).isUUIDv4();
 		} catch (e){
@@ -493,14 +496,14 @@ app.post("/messages/:itemId/:contactId",function(req,res){
 					content:req.body.message,
 					date:(new Date()).toISOString()
 				};
-				
-				if(notifier.listeners(eventString).length != 0){ //si le contact est en ligne avec nous, on lui envoie directement la réponse
+
+				if(notifier.listeners(eventString).length !== 0){ //si le contact est en ligne avec nous, on lui envoie directement la réponse
 					notifier.emit(eventString,msg);
-				}else if(notifier.listeners(contactId).length != 0){ //si il est connecté mais pas en train de parler avec nous, on lui envoie une notification et on ajoute ça a la liste des messages non-lus
+				}else if(notifier.listeners(contactId).length !== 0){ //si il est connecté mais pas en train de parler avec nous, on lui envoie une notification et on ajoute ça a la liste des messages non-lus
 					var notif = {
 						type:"message",
 						contact:req.session.user_id
-					}
+					};
 					addToUnread(contactId,req.session.user_id,itemId);
 					notifier.emit(contactId,notif);
 				}else{ //sinon on ajoute juste ça à la liste de ces messages non lu
@@ -532,7 +535,7 @@ app.get("/messages/conversations",function(req,res){
 				}
 			});
 			connection.release();
-			
+
 		}));
 	}else{
 		kutils.forbiden(res);
@@ -554,7 +557,7 @@ function longPollResponse(res){
 		}catch(e){
 			console.log(e);
 		}
-	}
+	};
 }
 
 app.get("/waitMessage/:itemId/:contactId",function(req,res){
@@ -562,7 +565,7 @@ app.get("/waitMessage/:itemId/:contactId",function(req,res){
 		var myId = req.session.user_id;
 		var contactId = req.params.contactId;
 		var itemId = req.params.itemId;
-		try{		
+		try{
 			check(itemId).isUUIDv4();
 			check(contactId).isUUIDv4();
 		} catch (e){
@@ -575,7 +578,7 @@ app.get("/waitMessage/:itemId/:contactId",function(req,res){
 		notifier.on(eventString, evtCb); //on s'abonne aux notifications concernant cette conversation
 
 		function rmListener(){
-			notifier.removeListener(eventString, evtCb);	
+			notifier.removeListener(eventString, evtCb);
 		}
 		res.on('close',rmListener); //lorsque la connexion est rompue, on supprime l'abonnement.
 		res.on('kend',rmListener); //lorsque la connexion a retournée un resultat, on supprime aussi l'abonnement
@@ -589,10 +592,10 @@ app.get("/notifs",function(req,res){
 		var myId = req.session.user_id;
 		var eventString = myId;
 		var evtCb = longPollResponse(res);
-		
+
 		notifier.on(eventString, evtCb); //on s'abonne aux notifications concernant mon identifiant
 		function rmListener(){
-			notifier.removeListener(eventString, evtCb);	
+			notifier.removeListener(eventString, evtCb);
 		}
 		res.on('close',rmListener); //lorsque la connexion est rompue, on supprime l'abonnement.
 		res.on('kend',rmListener); //lorsque la connexion a retournée un resultat, on supprime aussi l'abonnement
@@ -601,9 +604,9 @@ app.get("/notifs",function(req,res){
 	}
 });
 
-/* 
+/*
 
-Gestion des messages non-lus : 
+Gestion des messages non-lus :
 les messages non lus sont stocké dans redis en 3 parties :
 "message" + monId => nombre de messages non lus;
 monId => [liste,des,conversations,qui,ont,du,nouveau];
@@ -621,7 +624,7 @@ function errCB(p){
 			console.log(p);
 			console.log(err);
 		}
-	}
+	};
 }
 
 function addToUnread(destinataire,expediteur,itemId){
@@ -654,7 +657,7 @@ function listUnread(erreur,destinataire,convList,callback){
 	attendre.callback = callback;
 	attendre.total = convList.length;
 	attendre.err = null;
-	
+
 	attendre.on("fini",function handler(err,convList){
 		if(err){
 			this.callback(err,convList);
@@ -697,4 +700,3 @@ app.get("/unread",function(req,res){
 var usedPort = process.argv[2]||7777; //si jamais un numéro de port est passé en paramètre à l'execution du script node, alors on utilisera ce port là, sinon on utilise le port 7777 par défaut
 app.listen(usedPort);
 console.log("Serveur à l'écoute sur le port "+usedPort);
-
