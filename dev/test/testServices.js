@@ -2,9 +2,11 @@
 	Ce fichier contient les tests du fichier services.js
 */
 
+
 var services = require('../services.js');
 var mysql = require('mysql');
 var EventEmitter = require('events').EventEmitter;
+var helper = require('./testHelpers.js');
 
 var DBconnectionParams= {
   host:'localhost',
@@ -123,6 +125,107 @@ describe('Catégories',function(){
           }
           done();
         })(null,connection);
+      });
+    });
+  });
+  rollbackTransaction(connection);
+})
+
+describe('Objets',function(){
+  var item = {
+    nom_objet:"poney",
+    description:"un poney fringant",
+    category:3
+  };
+  describe('newItem(userId, item, callback)', function(){
+    it('should create a new item',function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(user){
+          services.newItem(user.id, item, function(err,id){
+            (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+            (id === null).should.be.false;//il doit bien y avoir un id retourné
+            item.id=id; //pour la suite des tests, on ajoute l'id à l'item
+            done();
+          })(null,connection);
+        });
+      });
+    });
+  });
+  describe('getMyItem(itemId, userId, callback)', function(){
+    it('should get an item from the database',function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(user){
+          services.getMyItem(item.id, user.id, function(err,itemDetails){
+            (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+            itemDetails.should.be.eql(item);
+            done();
+          })(null,connection);
+        });
+      });
+    });
+  });
+  describe('editItem(userId, item, itemId, callback)', function(){
+    it('should edit an existing item',function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(user){
+          services.editItem(user.id, item, item.id, function(err){
+            (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+            done();
+          })(null,connection);
+        });
+      });
+    });
+  });
+  describe('getItemList(userId, callback)', function(){
+    it('should get the list of the items owned by a user',function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(user){
+          services.getItemList(user.id, function(err,rows){
+            (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+            rows.length.should.be.eql(1);
+            rows[0].id.should.be.eql(item.id);
+            rows[0].nom_objet.should.be.eql(item.nom_objet);
+            done();
+          })(null,connection);
+        });
+      });
+    });
+  });
+  describe('getItemByCategory(category, callback)', function(){
+    it('should get a list of items selected by its category',function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(user){
+          services.getItemByCategory(item.category, function(err,rows){
+            (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+            rows.length.should.be.eql(1);
+            rows[0].id.should.be.eql(item.id);
+            rows[0].nom_objet.should.be.eql(item.nom_objet);
+            done();
+          })(null,connection);
+        });
+      });
+    });
+    it('should get an empty list selected from an empty category',function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(user){
+          services.getItemByCategory(4, function(err,rows){
+            err.should.be.eql("notFound");
+            rows.length.should.be.eql(0);
+            done();
+          })(null,connection);
+        });
+      });
+    });
+  });
+  describe('deleteItem(userId, itemId, callback)', function(){
+    it('should delete an item from the database',function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(user){
+          services.deleteItem(user.id,item.id, function(err){
+            (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+            done();
+          })(null,connection);
+        });
       });
     });
   });

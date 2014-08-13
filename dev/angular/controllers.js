@@ -61,7 +61,7 @@ angular.module('controllers', ['racletteModules']).
 			if(!formValidation.checkLength($scope.name)){
 				$scope.hiddenMessage = false;
 				$scope.errorMessages.push("Votre nom d'utilisateur doit faire au moins 3 caractères.");	
-				isItOk = false;	
+				isItOk = false;
 			}
 			if($scope.tel && !formValidation.checkTel($scope.tel)){ //si un numéro de tel est renseigné, on s'assure que c'est bien un numéro de tel
 				$scope.hiddenMessage = false;
@@ -124,7 +124,7 @@ angular.module('controllers', ['racletteModules']).
 				if(!data || data.length==0){
 					$scope.hiddenMessage = false;
 					$scope.errorMessage = "Vous ne partagez actuellement aucun objet. N'hésitez pas à partager vos objets avec la communauté racletteShare";
-				} 
+				}
 			});
 			$scope.clickDelete = function(itemId,index){
 				$http.delete('items/detail/'+itemId).success(function(data){
@@ -134,7 +134,7 @@ angular.module('controllers', ['racletteModules']).
 					$scope.hiddenMessage = false;
 					$scope.errorMessage = "Echec de la suppression de l'élement. Veuillez réessayer."
 				});
-			}			
+			}
 		},true);
 	}]).
 	controller('nouvel_objetCtrl', ['$scope','$http','$location','$window','LoginManager','NotifManager','formValidation','CategoryManager', function($scope, $http, $location, $window, LoginManager, NotifManager, formValidation, CategoryManager) {
@@ -171,7 +171,7 @@ angular.module('controllers', ['racletteModules']).
 					return function(e) {
 						$scope.file= theFile;
 						$scope.imgB64=e.target.result,
-						$scope.imgName=escape(theFile.name);						
+						$scope.imgName=escape(theFile.name);
 						$scope.hidePic = false;
 						$scope.$digest(); //met à jour les vues avec le nouveau scope
 					};
@@ -203,11 +203,11 @@ angular.module('controllers', ['racletteModules']).
 				$http({
 				    method: 'POST',
 				    url: "/items",
-				    //IMPORTANT!!! You might think this should be set to 'multipart/form-data' 
-				    // but this is not true because when we are sending up files the request 
-				    // needs to include a 'boundary' parameter which identifies the boundary 
-				    // name between parts in this multi-part request and setting the Content-type 
-				    // manually will not set this boundary parameter. For whatever reason, 
+				    //IMPORTANT!!! You might think this should be set to 'multipart/form-data'
+				    // but this is not true because when we are sending up files the request
+				    // needs to include a 'boundary' parameter which identifies the boundary
+				    // name between parts in this multi-part request and setting the Content-type
+				    // manually will not set this boundary parameter. For whatever reason,
 				    // setting the Content-type to 'false' will force the request to automatically
 				    // populate the headers properly including the boundary parameter.
 				    headers: { 'Content-Type': false },
@@ -227,7 +227,7 @@ angular.module('controllers', ['racletteModules']).
 				    data: {
 						nom_objet:$scope.nom_objet,
 						category:$scope.category.id,
-						description:$scope.description, 
+						description:$scope.description,
 						file: $scope.file
 					}
 				}).
@@ -244,7 +244,7 @@ angular.module('controllers', ['racletteModules']).
 				});
 			};
 		},true);
-		
+
 	}]).
 	controller('edit_objetCtrl', ['$scope','$http','$location','$routeParams','$timeout','LoginManager','NotifManager','formValidation', 'CategoryManager', function($scope,$http,$location,$routeParams,$timeout, LoginManager, NotifManager, formValidation, CategoryManager) {
 		$scope.hiddenMessage = true;
@@ -259,8 +259,8 @@ angular.module('controllers', ['racletteModules']).
 				}); //transforme [{id:1,label:"toto"},{id:2,label:"bob"}] en ["toto","bob"]
 			});
 
-			$http.get('/items/my/detail/'+$scope.itemId).success(function(data) {				
-				$scope.nom_objet=data.name;
+			$http.get('/items/my/detail/'+$scope.itemId).success(function(data) {
+				$scope.nom_objet=data.nom_objet;
 				CategoryManager.getCatLabelById(parseInt(data.category,10),function(label){
 					$scope.category=label;
 				});
@@ -301,7 +301,7 @@ angular.module('controllers', ['racletteModules']).
 					category:CategoryManager.getCatIdByLabel($scope.category),
 					description:$scope.description
 				}
-				
+
 				$http.put('/items/detail/'+$scope.itemId,putData).success(function (data, status, headers, config) {
 					$location.path("/items/my");
 					$location.replace();
@@ -312,18 +312,18 @@ angular.module('controllers', ['racletteModules']).
 				});
 			};
 		},true);
-		
+
 	}]).
 	controller('recherche_categoryCtrl', ['$scope','$http','$routeParams','$timeout','LoginManager','NotifManager','CategoryManager', function($scope,$http,$routeParams,$timeout, LoginManager, NotifManager, CategoryManager) {
 		LoginManager.checkLogin(function(){
 			NotifManager($scope);
-		});			
+		});
 		$scope.hiddenMessage = true;
 		$scope.errorMessage = "";
 		CategoryManager.getCatLabelById($routeParams.category, function(catLabel){
-			$scope.category = catLabel;	
+			$scope.category = catLabel;
 		});
-		$http.get('/items/category/'+$routeParams.category).success(function(data) {				
+		$http.get('/items/category/'+$routeParams.category).success(function(data) {
 			$scope.item_list = data;
 		}).
 		error(function(data, status){
@@ -331,16 +331,16 @@ angular.module('controllers', ['racletteModules']).
 			console.log(status);
 			$scope.hiddenMessage = false;
 			$scope.errorMessage = "Aucun objet trouvé autour de chez vous dans cette catégorie";
-		});	
+		});
 	}]).
 	controller('recherche_nomCtrl', ['$scope','$http','$routeParams','$timeout','LoginManager','NotifManager', function($scope,$http,$routeParams,$timeout, LoginManager, NotifManager) {
 		LoginManager.checkLogin(function(){
 			NotifManager($scope);
-		});			
+		});
 		$scope.hiddenMessage = true;
 		$scope.errorMessage = "";
 		$scope.keyword = $routeParams.keyword;
-		$http.get('/items/keyword/'+$scope.keyword).success(function(data) {				
+		$http.get('/items/keyword/'+$scope.keyword).success(function(data) {
 			$scope.item_list = data;
 		}).
 		error(function(data, status){
@@ -348,17 +348,17 @@ angular.module('controllers', ['racletteModules']).
 			console.log(status);
 			$scope.hiddenMessage = false;
 			$scope.errorMessage = "Aucun objet trouvé autour de chez vous pour ces mots clés";
-		});	
+		});
 	}]).
 	controller('detail_objetCtrl', ['$scope','$http','$routeParams','$location','LoginManager','NotifManager', function($scope,$http,$routeParams,$location, LoginManager, NotifManager) {
 		LoginManager.checkLogin(function(){
 			NotifManager($scope);
-		});			
+		});
 		$scope.hiddenMessage = true;
 		$scope.errorMessage = "";
 		$scope.itemId = $routeParams.itemId;
-		$http.get('/items/detail/'+$scope.itemId).success(function(data) {				
-			$scope.nom_objet=data.name;
+		$http.get('/items/detail/'+$scope.itemId).success(function(data) {
+			$scope.nom_objet=data.nom_objet;
 			$scope.category= {
 				label:data.category_label,
 				id:data.category_id
@@ -388,7 +388,7 @@ angular.module('controllers', ['racletteModules']).
 		var current = 0;
 		function checkNewMsg(){
 			console.log("cnm called");
-			$http.get('/waitMessage/'+$scope.itemId+'/'+$scope.contactId).success(function(data) {				
+			$http.get('/waitMessage/'+$scope.itemId+'/'+$scope.contactId).success(function(data) {
 				$scope.messages_list.push(data);
 				current=0;
 				checkNewMsg();
@@ -402,8 +402,8 @@ angular.module('controllers', ['racletteModules']).
 		}
 
 		LoginManager.checkLogin(function(){
-			NotifManager($scope);	
-			$http.get('/messages/'+$scope.itemId+'/'+$scope.contactId).success(function(data) {				
+			NotifManager($scope);
+			$http.get('/messages/'+$scope.itemId+'/'+$scope.contactId).success(function(data) {
 				$scope.nom_objet = data.nom_objet;
 				$scope.nom_contact = data.nom_contact;
 				$scope.messages_list = data.messages_list;
@@ -448,7 +448,7 @@ angular.module('controllers', ['racletteModules']).
 		$scope.hiddenMessage = true;
 		$scope.errorMessage = "";
 		LoginManager.checkLogin(function(){
-			$http.get('/messages/conversations').success(function(data) {				
+			$http.get('/messages/conversations').success(function(data) {
 				$scope.liste_conversations = data;
 			}).
 			error(function(){
@@ -461,5 +461,3 @@ angular.module('controllers', ['racletteModules']).
 			});
 		},true);
 	}]);
-
-

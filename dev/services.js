@@ -111,7 +111,7 @@ exports.getItemList = function getItemList(userId, callback){
 			callback(err,null,connection);
 			return;
 		}
-		connection.query('SELECT name, id FROM item WHERE user_id=?', [userId], function(err, rows) {
+		connection.query('SELECT name as nom_objet, id FROM item WHERE user_id=?', [userId], function(err, rows) {
 
 			callback(err,rows,connection);
 		});
@@ -217,7 +217,7 @@ exports.getMyItem = function getMyItem(itemId, userId, callback){
 			callback(err,null,connection);
 			return;
 		}
-		connection.query('SELECT name, description, category FROM item WHERE item.id= ? AND user_id = ?', [itemId, userId], function(err, rows) {
+		connection.query('SELECT id, name as nom_objet, description, category FROM item WHERE item.id= ? AND user_id = ?', [itemId, userId], function(err, rows) {
 
 			var itemDetails = null;
 			if(!err){
@@ -254,7 +254,7 @@ exports.getItemByCategory = function getItemByCategory(category, callback){
 			callback(err,null,connection);
 			return;
 		}
-		connection.query('SELECT item.id as id, user.name as ownerName, item.name as name FROM item INNER JOIN user ON item.user_id=user.id WHERE item.category= ?', [category], function(err, rows) {
+		connection.query('SELECT item.id as id, user.name as ownerName, item.name as nom_objet FROM item INNER JOIN user ON item.user_id=user.id WHERE item.category= ?', [category], function(err, rows) {
 
 			if(!err){
 				if(!rows || rows.length===0){
