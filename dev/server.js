@@ -25,7 +25,7 @@ var kutils = require('./kutils');
 var app = express();
 
 //permet l'utilisation des sessions dans l'application
-//TODO: utiliser Reddis ici pour permettre de faire du load balancing sans soucis.
+//On utilise Reddis ici pour permettre de faire du load balancing sans soucis, mais aussi pour pouvoir redémarrer l'application sans que ça supprime la session des utilisateurs enregistrés.
 // scr : http://blog.modulus.io/nodejs-and-express-sessions + l doc de connect sur les sessions pour la durée d'ouverture de la session
 // + http://stackoverflow.com/questions/14014446/how-to-save-and-retrieve-session-from-redis
 app.use(express.cookieParser());
@@ -43,10 +43,6 @@ app.use(express.session({
 	})
 })); //la session reste ouverte pendant 100 jours par défaut
 
-// Rq : pour accédr aux infos de la session : req.session.bob
-//end sessions
-
-//pour lire le contenu d'une requête post ou PUT
 app.use(express.bodyParser({
 	uploadDir:__dirname+"/pictures"
 })); // TODO utiliser  => express.json() à la place, et formidable juste pour le transfert de fichier quand j'en ai vraiment besoin /!\ Sinon, ça active formidable, qui va autoriser bêtement tout transfert de fichier sur le serveur quelque soit l'url qui lui est passé ... Du crackage total !!! Les mecs de connect s'en sont apperçu et du coup ils vont virer cette features : il faudra faire du formmidable à la main quand on en a besoin à partir de connect 3.0
@@ -70,14 +66,14 @@ app.get('/', function (req, res) {
 //traitement des images de profil
 app.get('/users/pictures/my', function (req, res) {
 	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette image
-		res.sendfile(__dirname + '/pictures/avatar2.png');
+		res.sendfile(__dirname + '/pictures/avatar2.png');//TODO: utiliser des avatar générés de manière procédurale
 	}else{
 		kutils.forbiden(res);
 	}
 });
 
 app.get('/users/pictures/:userId', function (req, res) {
-	res.sendfile(__dirname + '/pictures/avatar1.png');
+	res.sendfile(__dirname + '/pictures/avatar1.png');//TODO: utiliser des avatar générés de manière procédurale
 });
 
 //traitement des images des objets
@@ -92,7 +88,7 @@ app.get('/items/pictures/:itemId', function (req, res) {
 		res.sendfile(getPicturePathFromId(req.params.itemId));
 	}catch(e){
 		console.log(e);
-		res.sendfile(__dirname + '/pictures/pot.png');
+		res.sendfile(__dirname + '/pictures/pot.png');//TODO: trouver une image par défaut un peu plus utile
 	}
 });
 
@@ -108,7 +104,7 @@ app.get('/items/minipic/:itemId', function (req, res) {
 		res.sendfile(getMiniPicPathFromId(req.params.itemId));
 	}catch(e){
 		console.log(e);
-		res.sendfile(__dirname + '/pictures/pot.png');
+		res.sendfile(__dirname + '/pictures/pot.png');//TODO: trouver une image par défaut un peu plus utile
 	}
 });
 
@@ -285,7 +281,7 @@ app.post("/items",function(req,res){
 			check(photo.size).isInt();
 			check(photo.path).notNull();
 			if(photo.size>5000000){
-				throw new Exception();
+				throw new Exception();//le throw new exception n'est pas là pour lever une véritable exception qui remonte toute la stack, mais juste pour sortir du block try{}catch{} (parce que c'est le fonctionnement du plugin check)
 			}
 			check(photo.headers['content-type']).is(/^image\.*/);
 			check(req.body.nom_objet).len(3,64);
@@ -294,7 +290,7 @@ app.post("/items",function(req,res){
 			}
 		} catch (e){
 			if(photo && photo.path){
-				services.deleteFile(photo.path);
+				services.deleteFile(photo.path);//on supprime le fichier du répertoire temporaire si il y a un problème.
 			}
 			kutils.badRequest(res);
 			return;
@@ -455,7 +451,7 @@ app.get("/messages/:itemId/:contactId",function(req,res){
 		}
 		// FIXME : voir comment je fais le pool.getConnection( ici ???
 		// sachant qu'en supprimant le async je l'ai déjà pété de toute façon
-
+		// TODO : comprendre ce que j'ai fabriqué ici, (et surtout, voir c'est quoi le problème)
 		// pool.getConnection(function(err,connexion){
 
 
