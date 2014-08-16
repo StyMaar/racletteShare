@@ -33,6 +33,8 @@ exports.withUserCreated = function(connection, callback, userName){
       (id === null).should.be.false;//il doit bien y avoir un id retourné
       user.id=id;
       connection[userName]=user;
+      connection.parasite=connection.parasite||[];//on crée un objet qui va lister toutes les propriétés qu'on ajoute à une connexion pour y stocker des choses. Ces propriétés devront être supprimées lors du roolback de la transaction.
+      connection.parasite.push(userName);
       if(err){
         throw err;
       }
@@ -65,6 +67,8 @@ exports.withItemCreated = function(connection, callback){
         (id === null).should.be.false;//il doit bien y avoir un id retourné
         item.id=id;
         connection.itemCreated=item;
+        connection.parasite=connection.parasite||[];//on crée un objet qui va lister toutes les propriétés qu'on ajoute à une connexion pour y stocker des choses. Ces propriétés devront être supprimées lors du roolback de la transaction.
+        connection.parasite.push("itemCreated");
         if(err){
           throw err;
         }

@@ -49,6 +49,10 @@ function withTransaction(connection, callback){
 function rollbackTransaction(connection){
   connection.rollback(function(){});
   connection.transactionnal=false;
+  for(var key in connection.parasite){
+    delete connecion[key];
+  }
+  delete connection.parasite;
 }
 
 var connection = mysql.createConnection(DBconnectionParams);
@@ -290,5 +294,59 @@ describe('Conversation',function(){
       });
     });
   });
+  describe('getMessagesList(itemId,contactId,myId, callback)', function(){
+    it('should get a list of message with only one message in it',function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(destinataire){
+          helper.withItemCreated(connection,function(sender,item){
+            services.getMessagesList(item.id,destinataire.id,sender.id, function(err,msgList){
+              (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+              msgList.length.should.be.eql(1);
+              msgList[0].sender.should.be.eql("me");
+              msgList[0].content.should.be.eql(message);
+              (msgList[0].date === null).should.be.false;
+              done();
+            })(null,connection);
+          });
+        },"destinataire");
+      });
+    });
+  });
+  describe('getConversationsList(myId, callback)', function(){
+    it('should get a list of conversation with only one conversation in it',function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(destinataire){
+          helper.withItemCreated(connection,function(sender,item){
+            services.getConversationsList(sender.id, function(err,convList){
+              (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+              convList.length.should.be.eql(1);
+              convList[0].contact_id.should.be.eql(destinataire.id);
+              convList[0].contact_name.should.be.eql(destinataire.name);
+              convList[0].item_id.should.be.eql(item.id);
+              convList[0].nom_objet.should.be.eql(item.nom_objet);
+              done();
+            })(null,connection);
+          });
+        },"destinataire");
+      });
+    });
+  });
+  describe('getConversationDetail(itemId, contactId, callback)', function(){
+    it('should get the details of a conversation',function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(destinataire){
+          helper.withItemCreated(connection,function(sender,item){
+            services.getConversationDetail(item.id,destinataire.id, function(err,convDetails){
+              (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+              convDetails.contact_name.should.be.eql(destinataire.name);
+              convDetails.nom_objet.should.be.eql(item.nom_objet);
+              done();
+            })(null,connection);
+          });
+        },"destinataire");
+      });
+    });
+  });
+
   rollbackTransaction(connection);
 });

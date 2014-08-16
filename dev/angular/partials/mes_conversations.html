@@ -8,7 +8,7 @@
 			<a href="#/messages/{{conversation.item_id}}/{{conversation.contact_id}}" class="pic">
 				<img ng-src="/items/pictures/{{conversation.item_id}}">
 			</a>
-			<a href="#/messages/{{conversation.item_id}}/{{conversation.contact_id}}">{{conversation.item_name}}, avec {{conversation.contact_name}}</a><span class="badge">{{conversation.unread | zeroIsNull}}</span>
+			<a href="#/messages/{{conversation.item_id}}/{{conversation.contact_id}}">{{conversation.nom_objet}}, avec {{conversation.contact_name}}</a><span class="badge">{{conversation.unread | zeroIsNull}}</span>
 		</li>
 	</ul>
 </section>

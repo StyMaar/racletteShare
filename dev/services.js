@@ -286,7 +286,7 @@ exports.getItemByName = function getItemByName(keyword, callback){
 
 
 //ici le userId est là a titre informatif, on indiquera d'une façon spéciale dans la liste les objets qui m'appartiennent.
-exports.getItemDetail = function getItemDetail(itemId,userId, callback){
+exports.getItemDetail = function getItemDetail(itemId, userId, callback){
 	return function(err,connection){
 		//on s'assure que l'appel d'une connection dans le pool se passe bien.
 		if(err){
@@ -309,7 +309,7 @@ exports.getItemDetail = function getItemDetail(itemId,userId, callback){
 };
 
 
-exports.getConversationDetail = function getConversationDetail(itemId,contactId, callback){
+exports.getConversationDetail = function getConversationDetail(itemId, contactId, callback){
 	return function(err,connection){
 		//on s'assure que l'appel d'une connection dans le pool se passe bien.
 		if(err){
@@ -318,7 +318,7 @@ exports.getConversationDetail = function getConversationDetail(itemId,contactId,
 		}
 		connection.query("SELECT * \
 			FROM (\
-				SELECT name AS nom_contact\
+				SELECT name AS contact_name\
 				FROM user\
 				WHERE id = ?\
 			)A, (\
@@ -372,8 +372,7 @@ exports.newMessage = function newMessage(itemId, myId, contactId, message, callb
 			return;
 		}
 		connection.query("INSERT INTO message (item_id, sender_id, content, date, receiver_id ) \
-SELECT ?, ?, ?, NOW(), ? FROM item WHERE id = ? AND (user_id = ? OR user_id = ?)", [itemId, myId, message, contactId, itemId, myId, contactId] , function(err, results) {
-
+		SELECT ?, ?, ?, NOW(), ? FROM item WHERE id = ? AND (user_id = ? OR user_id = ?)", [itemId, myId, message, contactId, itemId, myId, contactId] , function(err, results) {
 			err = kutils.checkUpdateErr(err,results);
 			callback(err,null,connection);
 		});
@@ -387,7 +386,7 @@ exports.getConversationsList = function getConversationsList(myId, callback){
 			callback(err,null,connection);
 			return;
 		}
-		connection.query("SELECT DISTINCT user.id AS contact_id, user.name AS contact_name, item.id AS item_id, item.name AS item_name \
+		connection.query("SELECT DISTINCT user.id AS contact_id, user.name AS contact_name, item.id AS item_id, item.name AS nom_objet \
 						FROM (\
 							SELECT item_id, IF( message.sender_id = ?, message.receiver_id, IF( message.receiver_id = ?, message.sender_id, NULL ) ) AS contact_id \
 							FROM message \
