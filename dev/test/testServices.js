@@ -128,7 +128,7 @@ describe('Catégories',function(){
     });
   });
   rollbackTransaction(connection);
-})
+});
 
 describe('Objets',function(){
   var item = {
@@ -273,3 +273,22 @@ describe('Objets',function(){
   });
   rollbackTransaction(connection);
 })
+
+describe('Conversation',function(){
+  var message = "coucou, comment ça va ?";
+  describe('newMessage(itemId, myId, contactId, message, callback)', function(){
+    it('should send a new message to someone',function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(destinataire){
+          helper.withItemCreated(connection,function(sender,item){
+            services.newMessage(item.id, sender.id, destinataire.id, message, function(err){
+              (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+              done();
+            })(null,connection);
+          });
+        },"destinataire");
+      });
+    });
+  });
+  rollbackTransaction(connection);
+});
