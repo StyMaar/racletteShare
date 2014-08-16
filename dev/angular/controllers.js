@@ -60,7 +60,7 @@ angular.module('controllers', ['racletteModules']).
 			}
 			if(!formValidation.checkLength($scope.name)){
 				$scope.hiddenMessage = false;
-				$scope.errorMessages.push("Votre nom d'utilisateur doit faire au moins 3 caractères.");	
+				$scope.errorMessages.push("Votre nom d'utilisateur doit faire au moins 3 caractères.");
 				isItOk = false;
 			}
 			if($scope.tel && !formValidation.checkTel($scope.tel)){ //si un numéro de tel est renseigné, on s'assure que c'est bien un numéro de tel
@@ -364,9 +364,9 @@ angular.module('controllers', ['racletteModules']).
 				id:data.category_id
 			};
 			$scope.description=data.description;
-			$scope.contactName=data.ownerName;
-			$scope.contactId=data.ownerId;
-			$scope.isMine = data.isMine;
+			$scope.contactName=data.owner_name;
+			$scope.contactId=data.owner_id;
+			$scope.isMine = data.is_mine;
 		}).
 		error(function(){
 			$scope.hiddenMessage = false;

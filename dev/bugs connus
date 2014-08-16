@@ -1,0 +1,13 @@
+ReferenceError: async is not defined
+    at Object.savePictures (/home/stymaar/poney/services.js:151:2)
+    at /home/stymaar/poney/server.js:304:14
+    at Query._callback (/home/stymaar/poney/services.js:200:4)
+    at Query.Sequence.end (/home/stymaar/poney/node_modules/mysql/lib/protocol/sequences/Sequence.js:75:24)
+    at Query._handleFinalResultPacket (/home/stymaar/poney/node_modules/mysql/lib/protocol/sequences/Query.js:143:8)
+    at Query.OkPacket (/home/stymaar/poney/node_modules/mysql/lib/protocol/sequences/Query.js:77:10)
+    at Protocol._parsePacket (/home/stymaar/poney/node_modules/mysql/lib/protocol/Protocol.js:192:24)
+    at Parser.write (/home/stymaar/poney/node_modules/mysql/lib/protocol/Parser.js:62:12)
+    at Protocol.write (/home/stymaar/poney/node_modules/mysql/lib/protocol/Protocol.js:37:16)
+    at Socket.ondata (stream.js:51:26)
+
+en voulant enregistrer un nouvel objet.

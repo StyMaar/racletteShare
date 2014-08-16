@@ -15,7 +15,16 @@ var DBconnectionParams= {
   database:'test'
 };
 
-
+var categories=[
+  'Coup de main',
+  'Fiesta',
+  'Voyage',
+  'High-tech',
+  'Bricolage/Jardinage',
+  'Sport',
+  'Maison/Cuisine',
+  'Culture'
+];
 
 //Ouvre une transaction et effectue l'action callback lorsqu'elle est ouverte. Si elle est déjà ouverte, on effectue directement le callback.
 function withTransaction(connection, callback){
@@ -106,16 +115,6 @@ describe('Utilisateurs', function(){
 });
 
 describe('Catégories',function(){
-  var categories=[
-    'Coup de main',
-    'Fiesta',
-    'Voyage',
-    'High-tech',
-    'Bricolage/Jardinage',
-    'Sport',
-    'Maison/Cuisine',
-    'Culture'
-  ];
   describe('getCategories(callback)', function(){
     it('should get the liste of categories',function(done){
       withTransaction(connection,function(connection){
@@ -211,6 +210,49 @@ describe('Objets',function(){
           services.getItemByCategory(4, function(err,rows){
             err.should.be.eql("notFound");
             rows.length.should.be.eql(0);
+            done();
+          })(null,connection);
+        });
+      });
+    });
+  });
+  describe('getItemByName(keyword, callback)', function(){ //Test disabled until moving to newer version of mySQL (no fullText index with innoDB in this version)
+    it('should get a list of items selected by its name'/*,function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(user){
+          services.getItemByName(item.nom_objet, function(err,rows){
+            (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+            rows.length.should.be.eql(1);
+            rows[0].id.should.be.eql(item.id);
+            rows[0].nom_objet.should.be.eql(item.nom_objet);
+            done();
+          })(null,connection);
+        });
+      });
+    }*/);
+    it('should get an empty list selected from a non-existing name'/*,function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(user){
+          services.getItemByName("caribou", function(err,rows){
+            err.should.be.eql("notFound");
+            rows.length.should.be.eql(0);
+            done();
+          })(null,connection);
+        });
+      });
+    }*/);
+  });
+  describe('getItemDetail(itemId,userId, callback)', function(){
+    it('should get an item from the database',function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(user){
+          services.getItemDetail(item.id, user.id, function(err,itemDetails){
+            (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+            itemDetails.category_id.should.be.eql(item.category);
+            itemDetails.category_label.should.be.eql(categories[item.category]);
+            itemDetails.is_mine.should.be.eql("mine");
+            itemDetails.owner_id.should.be.eql(user.id);
+            itemDetails.owner_name.should.be.eql(user.name);
             done();
           })(null,connection);
         });

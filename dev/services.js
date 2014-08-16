@@ -6,7 +6,6 @@ var kutils = require('./kutils');
 /* Définition des fonctions suivantes : doLogin, createUser, getUserInfo, getCategories, getItemList, deleteItem, (savePictures, deleteFile, newItem)
 ET : getMyItem, editItem, getItemByCategory, getItemByName, getItemDetail, getConversationDetail, getMessagesList, newMessage, getConversationsList.
  */
-
 /*****
 
 Toutes les fonctions définies dans ce module ont une structure commune :
@@ -254,7 +253,7 @@ exports.getItemByCategory = function getItemByCategory(category, callback){
 			callback(err,null,connection);
 			return;
 		}
-		connection.query('SELECT item.id as id, user.name as ownerName, item.name as nom_objet FROM item INNER JOIN user ON item.user_id=user.id WHERE item.category= ?', [category], function(err, rows) {
+		connection.query('SELECT item.id as id, user.name as owner_name, item.name as nom_objet FROM item INNER JOIN user ON item.user_id=user.id WHERE item.category= ?', [category], function(err, rows) {
 
 			if(!err){
 				if(!rows || rows.length===0){
@@ -273,7 +272,7 @@ exports.getItemByName = function getItemByName(keyword, callback){
 			callback(err,null,connection);
 			return;
 		}
-		connection.query('SELECT item.id as id, user.name as ownerName, item.name as name FROM item INNER JOIN user ON item.user_id=user.id WHERE MATCH (item.name,item.description) AGAINST (?)', [keyword], function(err, rows) {
+		connection.query('SELECT item.id as id, user.name as owner_name, item.name as name FROM item INNER JOIN user ON item.user_id=user.id WHERE MATCH (item.name,item.description) AGAINST (?)', [keyword], function(err, rows) {
 
 			if(!err){
 				if(!rows || rows.length===0){
@@ -294,7 +293,7 @@ exports.getItemDetail = function getItemDetail(itemId,userId, callback){
 			callback(err,null,connection);
 			return;
 		}
-		connection.query("SELECT if( item.user_id = ?, 'mine', '' ) as isMine, item.name as name, item.description as description, category.label as category_label, category.id as category_id, user.name as ownerName, item.user_id as ownerId FROM item INNER JOIN user ON item.user_id=user.id INNER JOIN category ON category.id=item.category WHERE item.id= ?", [userId, itemId], function(err, rows) {
+		connection.query("SELECT if( item.user_id = ?, 'mine', '' ) as is_mine, item.name as name, item.description as description, category.label as category_label, category.id as category_id, user.name as owner_name, item.user_id as owner_id FROM item INNER JOIN user ON item.user_id=user.id INNER JOIN category ON category.id=item.category WHERE item.id= ?", [userId, itemId], function(err, rows) {
 
 			var itemDetails = null;
 			if(!err){
