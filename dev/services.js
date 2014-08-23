@@ -308,6 +308,150 @@ exports.getItemDetail = function getItemDetail(itemId, userId, callback){
 	};
 };
 
+exports.newDemande = function newDemande(userId, demande, callback){
+	return function(err,connection){
+		var id = kutils.uuid();
+		if(err){
+			callback(err,null,connection);
+			return;
+		}
+		connection.query('INSERT INTO demande (id, user_id, name, description, category, date) \
+		VALUES (?,?,?,?,?,NOW())', [id, userId, demande.nom_demande, demande.description, demande.category], function(err, results) {
+
+			err = kutils.checkUpdateErr(err,results);
+			callback(err,id,connection);
+		});
+	};
+};
+
+exports.deleteDemande = function deleteDemande(userId, demandeId, callback){
+	return function(err,connection){
+		if(err){
+			callback(err,null,connection);
+			return;
+		}
+		connection.query('DELETE FROM demande WHERE user_id = ? AND id = ?', [userId, demandeId] , function(err, results) {
+
+			err = kutils.checkUpdateErr(err,results);
+			callback(err,null,connection);
+		});
+	};
+};
+
+exports.getDemandeList = function getDemandeList(userId, callback){
+	return function(err,connection){
+		//on s'assure que l'appel d'une connection dans le pool se passe bien.
+		if(err){
+			callback(err,null,connection);
+			return;
+		}
+		connection.query('SELECT name as nom_demande, id FROM demande WHERE user_id=?', [userId], function(err, rows) {
+
+			callback(err,rows,connection);
+		});
+	};
+};
+
+/*
+Récupère le détail d'une demande appartenant à l'utilisateur d'id userId. Seul l'utilisateur en question peut récupérer ce détail.
+*/
+
+exports.getMyDemande = function getMyDemande(demandeId, userId, callback){
+	return function(err,connection){
+		//on s'assure que l'appel d'une connection dans le pool se passe bien.
+		if(err){
+			callback(err,null,connection);
+			return;
+		}
+		connection.query('SELECT id, name as nom_demande, description, category FROM demande WHERE demande.id= ? AND user_id = ?', [demandeId, userId], function(err, rows) {
+			var demandeDetails = null;
+			if(!err){
+				if(rows && rows.length!==0){
+					demandeDetails = rows[0];
+				}else{
+					err = "notFound";
+				}
+			}
+			callback(err,demandeDetails,connection);
+		});
+	};
+};
+
+exports.editDemande = function editDemande(userId, demande, demandeId, callback){
+	return function(err,connection){
+		//on s'assure que l'appel d'une connection dans le pool se passe bien.
+		if(err){
+			callback(err,null,connection);
+			return;
+		}
+		connection.query('UPDATE `demande` SET `name`=?,`description`=?,`category`=? WHERE id=? AND user_id = ?', [demande.nom_demande, demande.description, demande.category, demandeId, userId], function(err, results) {
+
+			err = kutils.checkUpdateErr(err,results);
+			callback(err,null,connection);
+		});
+	};
+};
+
+
+exports.getDemandeByCategory = function getDemandeByCategory(category, callback){
+	return function(err,connection){
+		//on s'assure que l'appel d'une connection dans le pool se passe bien.
+		if(err){
+			callback(err,null,connection);
+			return;
+		}
+		connection.query('SELECT  demande.id as id, user.name as owner_name,  demande.name as nom_demande FROM demande INNER JOIN user ON  demande.user_id=user.id WHERE  demande.category= ?', [category], function(err, rows) {
+
+			if(!err){
+				if(!rows || rows.length===0){
+					err = "notFound";
+				}
+			}
+			callback(err,rows,connection);
+		});
+	};
+};
+
+exports.getDemandeByName = function getDemandeByName(keyword, callback){
+	return function(err,connection){
+		//on s'assure que l'appel d'une connection dans le pool se passe bien.
+		if(err){
+			callback(err,null,connection);
+			return;
+		}
+		connection.query('SELECT demande.id as id, user.name as owner_name, demande.name as name FROM demande INNER JOIN user ON demande.user_id=user.id WHERE MATCH (demande.name,demande.description) AGAINST (?)', [keyword], function(err, rows) {
+
+			if(!err){
+				if(!rows || rows.length===0){
+					err = "notFound";
+				}
+			}
+			callback(err,rows,connection);
+		});
+	};
+};
+
+exports.getDemandeDetail = function getDemandeDetail(demandeId, userId, callback){
+	return function(err,connection){
+		//on s'assure que l'appel d'une connection dans le pool se passe bien.
+		if(err){
+			callback(err,null,connection);
+			return;
+		}
+		connection.query("SELECT if( demande.user_id = ?, 'mine', '' ) as is_mine, demande.name as name, demande.description as description, category.label as category_label, category.id as category_id, user.name as owner_name, demande.user_id as owner_id FROM demande INNER JOIN user ON demande.user_id=user.id INNER JOIN category ON category.id=demande.category WHERE demande.id= ?", [userId, demandeId], function(err, rows) {
+
+			var demandeDetails = null;
+			if(!err){
+				if(rows && rows.length!==0){
+					demandeDetails = rows[0];
+				}else{
+					err = "notFound";
+				}
+			}
+			callback(err,demandeDetails,connection);
+		});
+	};
+};
 
 exports.getConversationDetail = function getConversationDetail(itemId, contactId, callback){
 	return function(err,connection){

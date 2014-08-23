@@ -80,6 +80,27 @@ CREATE TABLE IF NOT EXISTS `item` (
   KEY `user_ID` (`user_id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 -- avec InnoDB on a des transactions, mais pas d'index full texte dans cette version de mysql (à partir de la 5.6 seulement)
+-- TODO : mettre à jour mySQL et rajouter cet index FULLTEXT
+-- ,
+-- FULLTEXT KEY `rechercheNom` (`name`,`description`)
+-- ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+
+--
+-- Table structure for table `demande`
+--
+
+CREATE TABLE IF NOT EXISTS `demande` (
+  `id` varchar(36) NOT NULL,
+  `user_id` varchar(36) NOT NULL,
+  `name` varchar(64) NOT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `category` int(10) NOT NULL,
+  `date` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `user_ID` (`user_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+-- avec InnoDB on a des transactions, mais pas d'index full texte dans cette version de mysql (à partir de la 5.6 seulement)
+-- TODO : mettre à jour mySQL et rajouter cet index FULLTEXT
 -- ,
 -- FULLTEXT KEY `rechercheNom` (`name`,`description`)
 -- ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;

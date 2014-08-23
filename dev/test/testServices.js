@@ -278,6 +278,150 @@ describe('Objets',function(){
   rollbackTransaction(connection);
 })
 
+describe('Demandes',function(){
+  var demande = {
+    nom_demande:"poney",
+    description:"je cherche un poney fringant",
+    category:5
+  };
+  describe('newDemande(userId, demande, callback)', function(){
+    it('should create a new demande',function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(user){
+          services.newDemande(user.id, demande, function(err,id){
+            (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+            (id === null).should.be.false;//il doit bien y avoir un id retourné
+            demande.id=id; //pour la suite des tests, on ajoute l'id à l'item
+            done();
+          })(null,connection);
+        });
+      });
+    });
+  });
+  describe('getDemandeList(userId, callback)', function(){
+    it('should get the list of the demandes owned by a user',function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(user){
+          services.getDemandeList(user.id, function(err,rows){
+            (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+            rows.length.should.be.eql(1);
+            rows[0].id.should.be.eql(demande.id);
+            rows[0].nom_demande.should.be.eql(demande.nom_demande);
+            done();
+          })(null,connection);
+        });
+      });
+    });
+  });
+  describe('getMyDemande(demandeId, userId, callback)', function(){
+    it('should get a demande from the database',function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(user){
+          services.getMyDemande(demande.id, user.id, function(err,demandeDetails){
+            (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+            demandeDetails.should.be.eql(demande);
+            done();
+          })(null,connection);
+        });
+      });
+    });
+  });
+  describe('editDemande(userId, demande, demandeId, callback)', function(){
+    it('should edit an existing demande',function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(user){
+          services.editDemande(user.id, demande, demande.id, function(err){
+            (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+            done();
+          })(null,connection);
+        });
+      });
+    });
+  });
+  describe('getDemandeByCategory(category, callback)', function(){
+    it('should get a list of demandes selected by their category',function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(user){
+          services.getDemandeByCategory(demande.category, function(err,rows){
+            (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+            rows.length.should.be.eql(1);
+            rows[0].id.should.be.eql(demande.id);
+            rows[0].nom_demande.should.be.eql(demande.nom_demande);
+            done();
+          })(null,connection);
+        });
+      });
+    });
+    it('should get an empty list selected from an empty category',function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(user){
+          services.getDemandeByCategory(4, function(err,rows){
+            err.should.be.eql("notFound");
+            rows.length.should.be.eql(0);
+            done();
+          })(null,connection);
+        });
+      });
+    });
+  });
+  describe('getDemandeByName(keyword, callback)', function(){ //Test disabled until moving to newer version of mySQL (no fullText index with innoDB in this version)
+    it('should get a list of demandes selected by its name'/*,function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(user){
+          services.getDemandeByName(demande.nom_demande, function(err,rows){
+            (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+            rows.length.should.be.eql(1);
+            rows[0].id.should.be.eql(item.id);
+            rows[0].nom_demande.should.be.eql(item.nom_demande);
+            done();
+          })(null,connection);
+        });
+      });
+    }*/);
+    it('should get an empty list selected from a non-existing name'/*,function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(user){
+          services.getDemandeByName("caribou", function(err,rows){
+            err.should.be.eql("notFound");
+            rows.length.should.be.eql(0);
+            done();
+          })(null,connection);
+        });
+      });
+    }*/);
+  });
+  describe('getDemandeDetail(demandeId,userId, callback)', function(){
+    it('should get an demande from the database',function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(user){
+          services.getDemandeDetail(demande.id, user.id, function(err,demandeDetails){
+            (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+            demandeDetails.category_id.should.be.eql(demande.category);
+            demandeDetails.category_label.should.be.eql(categories[demande.category]);
+            demandeDetails.is_mine.should.be.eql("mine");
+            demandeDetails.owner_id.should.be.eql(user.id);
+            demandeDetails.owner_name.should.be.eql(user.name);
+            done();
+          })(null,connection);
+        });
+      });
+    });
+  });
+  describe('deleteDemande(userId, demandeId, callback)', function(){
+    it('should delete a demande from the database',function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(user){
+          services.deleteDemande(user.id,demande.id, function(err){
+            (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+            done();
+          })(null,connection);
+        });
+      });
+    });
+  });
+  rollbackTransaction(connection);
+})
+
 describe('Conversation',function(){
   var message = "coucou, comment ça va ?";
   describe('newMessage(itemId, myId, contactId, message, callback)', function(){
