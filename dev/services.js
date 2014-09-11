@@ -1,5 +1,6 @@
 var imagemagick = require('imagemagick');
 var async = require('async');
+var fs = require('fs');
 
 var kutils = require('./kutils');
 
@@ -169,7 +170,7 @@ exports.savePictures = function savePictures(uploadPath,itemId,getPicturePathFro
 	});
 };
 
-exports.deleteFile = function deleteFile(path){
+function deleteFile(path){ //on met deleteFile dans le scope pour que la fonction puisse être utilisée par les autres fonctions du module.
 	fs.unlink(path, function (err) {
 		if (err){
 			console.log(err);
@@ -180,6 +181,7 @@ exports.deleteFile = function deleteFile(path){
 	});
 };
 
+exports.deleteFile = deleteFile;
 
 /*
   newItem : prend les infos correspondant au nouvel objet
@@ -293,7 +295,7 @@ exports.getItemDetail = function getItemDetail(itemId, userId, callback){
 			callback(err,null,connection);
 			return;
 		}
-		connection.query("SELECT if( item.user_id = ?, 'mine', '' ) as is_mine, item.name as name, item.description as description, category.label as category_label, category.id as category_id, user.name as owner_name, item.user_id as owner_id FROM item INNER JOIN user ON item.user_id=user.id INNER JOIN category ON category.id=item.category WHERE item.id= ?", [userId, itemId], function(err, rows) {
+		connection.query("SELECT if( item.user_id = ?, 'mine', '' ) as is_mine, item.name as nom_objet, item.description as description, category.label as category_label, category.id as category_id, user.name as owner_name, item.user_id as owner_id FROM item INNER JOIN user ON item.user_id=user.id INNER JOIN category ON category.id=item.category WHERE item.id= ?", [userId, itemId], function(err, rows) {
 
 			var itemDetails = null;
 			if(!err){

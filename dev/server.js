@@ -1,7 +1,6 @@
 var express = require('express');
 var async = require('async');
 var check = require('validator').check;
-var fs = require('fs');
 
 var EventEmitter = require('events').EventEmitter;
 
@@ -10,13 +9,16 @@ var redis = require("redis").createClient();
 
 var imagemagick = require('imagemagick');
 
-var mysql = require('mysql');
-var pool = mysql.createPool({
+var mySQLparams = require('./mySQLparams');
+/*{
 	host:'localhost',
 	user:'root',
 	password:'1234poney',
 	database:'raclette'
-});
+}*/
+
+var mysql = require('mysql');
+var pool = mysql.createPool(mySQLparams);
 
 
 var services = require('./services');
@@ -452,19 +454,17 @@ app.get("/messages/:itemId/:contactId",function(req,res){
 		// FIXME : voir comment je fais le pool.getConnection( ici ???
 		// sachant qu'en supprimant le async je l'ai déjà pété de toute façon
 		// TODO : comprendre ce que j'ai fabriqué ici, (et surtout, voir c'est quoi le problème)
-		// pool.getConnection(function(err,connexion){
-
-
-		// }
-		/*services.getConversationDetail(itemId,contactId,services.getMessagesList(itemId,contactId,req.session.user_id,function(err,results){
-			if(kutils.checkError(err,res)){
-				var convDetails = results[0];
-				markAsRead(req.session.user_id,contactId,itemId);
-				convDetails.messages_list= results[1];
-				res.contentType('application/json');
-				res.send(JSON.stringify(convDetails));
-			}
-		}));
+/*	pool.getConnection(function(err,connexion){
+			services.getConversationDetail(itemId,contactId,services.getMessagesList(itemId,contactId,req.session.user_id,function(err,results){
+				if(kutils.checkError(err,res)){
+					var convDetails = results[0];
+					markAsRead(req.session.user_id,contactId,itemId);
+					convDetails.messages_list= results[1];
+					res.contentType('application/json');
+					res.send(JSON.stringify(convDetails));
+				}
+			}))(err,connection);
+		}
 		*/
 	}else{
 		kutils.forbiden(res);
