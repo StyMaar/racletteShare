@@ -464,7 +464,7 @@ exports.getConversationDetail = function getConversationDetail(itemId, contactId
 		}
 		connection.query("SELECT * \
 			FROM (\
-				SELECT name AS contact_name\
+				SELECT name AS nom_contact\
 				FROM user\
 				WHERE id = ?\
 			)A, (\
@@ -532,7 +532,7 @@ exports.getConversationsList = function getConversationsList(myId, callback){
 			callback(err,null,connection);
 			return;
 		}
-		connection.query("SELECT DISTINCT user.id AS contact_id, user.name AS contact_name, item.id AS item_id, item.name AS nom_objet \
+		connection.query("SELECT DISTINCT user.id AS contact_id, user.name AS nom_contact, item.id AS item_id, item.name AS nom_objet \
 						FROM (\
 							SELECT item_id, IF( message.sender_id = ?, message.receiver_id, IF( message.receiver_id = ?, message.sender_id, NULL ) ) AS contact_id \
 							FROM message \

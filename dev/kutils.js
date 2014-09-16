@@ -6,11 +6,11 @@ var uuid = require('node-uuid').v4;
 var kutils = {};
 
 kutils.notFound = function(res){
-	res.send(404); 
+	res.send(404);
 }
 
 kutils.badRequest = function(res){
-	res.send(400); 
+	res.send(400);
 }
 
 kutils.forbiden = function(res){
@@ -18,7 +18,7 @@ kutils.forbiden = function(res){
 }
 
 kutils.error = function(res,err){
-	res.send(500,err); 
+	res.send(500,err);
 }
 // fonction qui sert à évaluer les erreurs
 // return true s'il n'y a pas d'erreur
@@ -31,7 +31,7 @@ kutils.checkError = function(err,res){
 		case null :
 		case "" :
 		break;
-		case "notFound" : 
+		case "notFound" :
 			kutils.notFound (res);
 		break;
 		case "badRequest":
@@ -40,7 +40,11 @@ kutils.checkError = function(err,res){
 		case "forbiden":
 			kutils.forbiden(res);
 		break;
-		default:
+	default: //cas des erreurs SQL ou express par exemple
+			//ici on traite certaines erreurs attendues
+			/*if(err.){
+				break;
+			}*/
 			kutils.error(res,err);
 		break;
 	}
@@ -61,9 +65,9 @@ kutils.uuid = function(){
 	return uuid.unparse(buff);
 }
 
-/* Pour contrôler les écritures en base : 
+/* Pour contrôler les écritures en base :
 on vérifie si une erreur est retournée par le SGBD,
-puis, s'il n'y en a pas : vérifie que quelque chose a été écrit 
+puis, s'il n'y en a pas : vérifie que quelque chose a été écrit
 si ce n'est pas le cas on retourne une erreur : "pas d'écriture dans la base de données"
 */
 kutils.checkUpdateErr = function (err,results){

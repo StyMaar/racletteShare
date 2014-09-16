@@ -454,18 +454,20 @@ app.get("/messages/:itemId/:contactId",function(req,res){
 		// FIXME : voir comment je fais le pool.getConnection( ici ???
 		// sachant qu'en supprimant le async je l'ai déjà pété de toute façon
 		// TODO : comprendre ce que j'ai fabriqué ici, (et surtout, voir c'est quoi le problème)
-/*	pool.getConnection(function(err,connexion){
-			services.getConversationDetail(itemId,contactId,services.getMessagesList(itemId,contactId,req.session.user_id,function(err,results){
-				if(kutils.checkError(err,res)){
-					var convDetails = results[0];
-					markAsRead(req.session.user_id,contactId,itemId);
-					convDetails.messages_list= results[1];
-					res.contentType('application/json');
-					res.send(JSON.stringify(convDetails));
-				}
-			}))(err,connection);
-		}
-		*/
+		pool.getConnection(function(err,connexion){
+			services.getConversationDetail(itemId,contactId,function(err,convResult){
+				services.getMessagesList(itemId,contactId,req.session.user_id,function(err,msgListResult){
+						if(kutils.checkError(err,res)){
+							var convDetails = convResult;
+							//markAsRead(req.session.user_id,contactId,itemId);
+							convDetails.messages_list= msgListResult;
+							res.contentType('application/json');
+							console.log(convDetails);
+							res.send(JSON.stringify(convDetails));
+						}
+				})(err, connexion);
+			})(err,connexion);
+		});
 	}else{
 		kutils.forbiden(res);
 	}
@@ -696,3 +698,4 @@ app.get("/unread",function(req,res){
 var usedPort = process.argv[2]||7777; //si jamais un numéro de port est passé en paramètre à l'execution du script node, alors on utilisera ce port là, sinon on utilise le port 7777 par défaut
 app.listen(usedPort);
 console.log("Serveur à l'écoute sur le port "+usedPort);
+console.log("Penser à lancer redis-server !!!")

@@ -465,7 +465,7 @@ describe('Conversation',function(){
               (err === null).should.be.true;//il ne doit pas y avoir d'erreur
               convList.length.should.be.eql(1);
               convList[0].contact_id.should.be.eql(destinataire.id);
-              convList[0].contact_name.should.be.eql(destinataire.name);
+              convList[0].nom_contact.should.be.eql(destinataire.name);
               convList[0].item_id.should.be.eql(item.id);
               convList[0].nom_objet.should.be.eql(item.nom_objet);
               done();
@@ -482,7 +482,7 @@ describe('Conversation',function(){
           helper.withItemCreated(connection,function(sender,item){
             services.getConversationDetail(item.id,destinataire.id, function(err,convDetails){
               (err === null).should.be.true;//il ne doit pas y avoir d'erreur
-              convDetails.contact_name.should.be.eql(destinataire.name);
+              convDetails.nom_contact.should.be.eql(destinataire.name);
               convDetails.nom_objet.should.be.eql(item.nom_objet);
               done();
             })(null,connection);
