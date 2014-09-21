@@ -1,4 +1,4 @@
 exports.host='localhost';
-exports.user='';
-exports.password='';
-exports.database='test';
+exports.user='root';
+exports.password='azerty';
+exports.database='raclette';
