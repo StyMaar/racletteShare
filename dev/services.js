@@ -23,7 +23,6 @@ exports.doLogin = function doLogin(login, password, callback){
 		}
 		// FIXME : un simple sha2 sans sel ? je pourrais au moins faire la concaténation login + password pour éviter les colisions ...
 		connection.query('SELECT id FROM user WHERE login = ? AND password = SHA2(?, 224)', [login,password], function(err, rows) {
-
 			var id = null;
 			if(!err){
 				if(rows && rows.length !== 0){

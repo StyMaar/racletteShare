@@ -144,7 +144,7 @@ app.get("/users/:login/:password",function(req,res){
 	}
 	pool.getConnection(services.doLogin(login,password,function(err,result,connection){
 		if(kutils.checkError(err,res)){
-			req.session.user_id=result[0];
+			req.session.user_id=result;
 			kutils.ok(res);
 		}
 		connection.release();
