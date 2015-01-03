@@ -8,12 +8,7 @@ var mysql = require('mysql');
 var EventEmitter = require('events').EventEmitter;
 var helper = require('./testHelpers.js');
 
-var DBconnectionParams= {
-  host:'localhost',
-  user:'',
-  password:'',
-  database:'test'
-};
+var DBconnectionParams= require('../mySQLparams.js');
 
 var categories=[
   'Coup de main',
