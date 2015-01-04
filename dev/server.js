@@ -10,12 +10,6 @@ var redis = require("redis").createClient();
 var imagemagick = require('imagemagick');
 
 var mySQLparams = require('./mySQLparams');
-/*{
-	host:'localhost',
-	user:'root',
-	password:'1234poney',
-	database:'raclette'
-}*/
 
 var mysql = require('mysql');
 var pool = mysql.createPool(mySQLparams);
@@ -151,7 +145,6 @@ app.get("/users/:login/:password",function(req,res){
 	}));
 });
 
-/* fonction déplacée : doLogin*/
 
 /*================================================
 	Inscription

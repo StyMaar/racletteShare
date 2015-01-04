@@ -273,7 +273,7 @@ exports.getItemByName = function getItemByName(keyword, callback){
 			callback(err,null,connection);
 			return;
 		}
-		connection.query('SELECT item.id as id, user.name as owner_name, item.name as name FROM item INNER JOIN user ON item.user_id=user.id WHERE MATCH (item.name,item.description) AGAINST (?)', [keyword], function(err, rows) {
+		connection.query('SELECT item.id as id, user.name as owner_name, item.name as nom_objet FROM item INNER JOIN user ON item.user_id=user.id WHERE MATCH (item.name,item.description) AGAINST (?)', [keyword], function(err, rows) {
 
 			if(!err){
 				if(!rows || rows.length===0){
@@ -420,7 +420,7 @@ exports.getDemandeByName = function getDemandeByName(keyword, callback){
 			callback(err,null,connection);
 			return;
 		}
-		connection.query('SELECT demande.id as id, user.name as owner_name, demande.name as name FROM demande INNER JOIN user ON demande.user_id=user.id WHERE MATCH (demande.name,demande.description) AGAINST (?)', [keyword], function(err, rows) {
+		connection.query('SELECT demande.id as id, user.name as owner_name, demande.name as nom_demande FROM demande INNER JOIN user ON demande.user_id=user.id WHERE MATCH (demande.name,demande.description) AGAINST (?)', [keyword], function(err, rows) {
 
 			if(!err){
 				if(!rows || rows.length===0){

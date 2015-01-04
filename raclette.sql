@@ -79,13 +79,9 @@ CREATE TABLE IF NOT EXISTS `item` (
   FOREIGN KEY `user_ID` (`user_id`) REFERENCES user(id)
                      ON DELETE CASCADE,
   FOREIGN KEY `category_ID` (`category`) REFERENCES category(id)
-                     ON DELETE CASCADE
+                     ON DELETE CASCADE,
+  FULLTEXT KEY `rechercheNom` (`name`,`description`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
--- avec InnoDB on a des transactions, mais pas d'index full texte dans cette version de mysql (à partir de la 5.6 seulement)
--- TODO : mettre à jour mySQL et rajouter cet index FULLTEXT
--- ,
--- FULLTEXT KEY `rechercheNom` (`name`,`description`)
--- ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for table `demande`
@@ -102,13 +98,9 @@ CREATE TABLE IF NOT EXISTS `demande` (
   FOREIGN KEY `user_ID` (`user_id`) REFERENCES user(id)
                      ON DELETE CASCADE,
   FOREIGN KEY `category` (`category`) REFERENCES category(id)
-                     ON DELETE CASCADE
+                     ON DELETE CASCADE,
+  FULLTEXT KEY `rechercheNom` (`name`,`description`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
--- avec InnoDB on a des transactions, mais pas d'index full texte dans cette version de mysql (à partir de la 5.6 seulement)
--- TODO : mettre à jour mySQL et rajouter cet index FULLTEXT
--- ,
--- FULLTEXT KEY `rechercheNom` (`name`,`description`)
--- ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 

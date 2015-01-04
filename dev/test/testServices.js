@@ -45,7 +45,7 @@ function rollbackTransaction(connection){
   connection.rollback(function(){});
   connection.transactionnal=false;
   for(var key in connection.parasite){
-    delete connecion[key];
+    delete connection[key];
   }
   delete connection.parasite;
 }
@@ -133,7 +133,7 @@ describe('Objets',function(){
   var item = {
     nom_objet:"poney",
     description:"un poney fringant",
-    category:3
+    category:2
   };
   describe('newItem(userId, item, callback)', function(){
     it('should create a new item',function(done){
@@ -215,7 +215,7 @@ describe('Objets',function(){
       });
     });
   });
-  describe('getItemByName(keyword, callback)', function(){ //Test disabled until moving to newer version of mySQL (no fullText index with innoDB in this version)
+  describe('getItemByName(keyword, callback)', function(){//Test disabled because it can't work in a transaction as full text indexes are updated at commit time.
     it('should get a list of items selected by its name'/*,function(done){
       withTransaction(connection,function(connection){
         helper.withUserCreated(connection,function(user){
@@ -225,11 +225,11 @@ describe('Objets',function(){
             rows[0].id.should.be.eql(item.id);
             rows[0].nom_objet.should.be.eql(item.nom_objet);
             done();
-          })(null,connection);
+            })(null,connection);
         });
       });
     }*/);
-    it('should get an empty list selected from a non-existing name'/*,function(done){
+    it('should get an empty list selected from a non-existing name',function(done){
       withTransaction(connection,function(connection){
         helper.withUserCreated(connection,function(user){
           services.getItemByName("caribou", function(err,rows){
@@ -239,7 +239,7 @@ describe('Objets',function(){
           })(null,connection);
         });
       });
-    }*/);
+    });
   });
   describe('getItemDetail(itemId,userId, callback)', function(){
     it('should get an item from the database',function(done){
@@ -359,21 +359,21 @@ describe('Demandes',function(){
       });
     });
   });
-  describe('getDemandeByName(keyword, callback)', function(){ //Test disabled until moving to newer version of mySQL (no fullText index with innoDB in this version)
+  describe('getDemandeByName(keyword, callback)', function(){ //Test disabled because it can't work in a transaction as full text indexes are updated at commit time.
     it('should get a list of demandes selected by its name'/*,function(done){
       withTransaction(connection,function(connection){
         helper.withUserCreated(connection,function(user){
           services.getDemandeByName(demande.nom_demande, function(err,rows){
             (err === null).should.be.true;//il ne doit pas y avoir d'erreur
             rows.length.should.be.eql(1);
-            rows[0].id.should.be.eql(item.id);
-            rows[0].nom_demande.should.be.eql(item.nom_demande);
+            rows[0].id.should.be.eql(demande.id);
+            rows[0].nom_demande.should.be.eql(demande.nom_demande);
             done();
           })(null,connection);
         });
       });
     }*/);
-    it('should get an empty list selected from a non-existing name'/*,function(done){
+    it('should get an empty list selected from a non-existing name',function(done){
       withTransaction(connection,function(connection){
         helper.withUserCreated(connection,function(user){
           services.getDemandeByName("caribou", function(err,rows){
@@ -383,7 +383,7 @@ describe('Demandes',function(){
           })(null,connection);
         });
       });
-    }*/);
+    });
   });
   describe('getDemandeDetail(demandeId,userId, callback)', function(){
     it('should get an demande from the database',function(done){
