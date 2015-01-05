@@ -120,7 +120,9 @@ angular.module('racletteModules', [])
 		//le callback est une fonction qui prend le label de la catégorie en paramètre
 		CM.getCatLabelById= function(id,callback){
 			checkCategory(function(catList){
-				callback(catList[id].label);
+				if(catList[id]){
+					callback(catList[id].label);
+				}
 			});
 		};
 		CM.getCatIdByLabel=function(label){
