@@ -18,6 +18,8 @@ var pool = mysql.createPool(mySQLparams);
 var services = require('./services');
 var kutils = require('./kutils');
 
+var sendMail = require('./sendMail');
+
 var app = express();
 
 //permet l'utilisation des sessions dans l'application
@@ -145,6 +147,28 @@ app.get("/users/:login/:password",function(req,res){
 	}));
 });
 
+app.post("/users/:login/:password",function(req,res){
+	//TODO pour le changement de mot de passe.
+});
+
+
+app.get("/user/:email/",function(req,res){
+	var email = req.params.email;
+	try {
+		check(email).len(6, 64).isEmail();
+	} catch (e){
+		kutils.badRequest(res);
+		return;
+	}
+	pool.getConnection(services.resetPassword(email, function(err, newPassword, connection){
+		//TODO : il faudrait changer ça de manière à ne pas renvoyer d'erreur si jamais l'email n'existe pas. (sinon c'est aussi une possibilité d'attaque)
+		if(kutils.checkError(err,res)){
+			sendMail(email, newPassword);
+			kutils.ok(res);
+		}
+		connection.release();
+	}));
+})
 
 /*================================================
 	Inscription

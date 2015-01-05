@@ -53,6 +53,41 @@ exports.createUser = function createUser(user, callback){
 	};
 };
 
+//Pour changer le mot de passe automatiquement en cas d'oubli de mot de passe.
+//NOTE le fait de reset le password directement puis de l'envoyer par mail n'est pas forcément une bonne idée, et celà peut être la cible d'attaque.
+exports.resetPassword = function resetPassword(email, callback){
+	return function(err,connection){
+		var newPassword = kutils.uuid(); //le password en question est un UUID, c'est pas le truc le plus opti mais ça marche et c'est censé être safe.
+		//on s'assure que l'appel d'une connection dans le pool se passe bien.
+		if(err){
+			callback(err,null,connection);
+			return;
+		}
+		connection.query('UPDATE user set password=SHA2(?, 224) WHERE login=?', [newPassword, email], function(err, results) {
+			err = kutils.checkUpdateErr(err,results);
+			callback(err, newPassword, connection);
+		});
+	};
+};
+
+//Pour changer le mot de passe manuellement.
+//TODO écrire une façade dans l'API REST pour cette fonction.
+exports.changePassword = function changePassword(userId, oldPassword, newPassword, callback){
+	return function(err,connection){
+		//on s'assure que l'appel d'une connection dans le pool se passe bien.
+		if(err){
+			callback(err,connection);
+			return;
+		}
+		connection.query('UPDATE user set password=SHA2(?, 224) WHERE id=? AND password=SHA2(?, 224)', [newPassword, userId, oldPassword], function(err, results) {
+
+			err = kutils.checkUpdateErr(err,results);
+			callback(err,connection);
+		});
+	};
+};
+
+
 /*
   getUserInfo : récupère les informations de base sur un utilisateur, elle est utilisée un grand nombre de fois, pas seulement pour le dashboard
   fonction faite pour être appelée avec async

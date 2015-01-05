@@ -38,7 +38,7 @@ function withTransaction(connection, callback){
       connection.transactionnal=true;
       emitter.emit('ready');
     });
-  }
+}
 }
 
 function rollbackTransaction(connection){
@@ -96,6 +96,81 @@ describe('Utilisateurs', function(){
       });
     });
   });
+
+    describe('resetPassword(email, callback)', function(){
+      it('should reset the password of the user',function(done){
+        withTransaction(connection,function(connection){
+          services.resetPassword(user.login,function(err,newPassword){
+            (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+            (newPassword === null).should.be.false;
+            (newPassword.should.not.be.eql(user.password));//le mot de passe doit avoir été changé.
+            user.oldPassword = user.password;
+            user.password = newPassword;
+            done();
+          })(null,connection);
+        });
+      });
+      it('should not connect to the user with the old password',function(done){
+        withTransaction(connection,function(connection){
+          services.doLogin(user.login,user.oldPassword,function(err,id){
+            err.should.be.eql("forbiden");
+            (id === null).should.be.true;//il ne doit pas y avoir d'id retourné
+            done();
+          })(null,connection);
+        });
+      });
+      it('should connect to the user with the new password',function(done){
+        withTransaction(connection,function(connection){
+          services.doLogin(user.login,user.password,function(err,id){
+            (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+            id.should.be.eql(user.id);
+            done();
+          })(null,connection);
+        });
+      });
+    });
+
+    describe('changePassword(userId, oldPassword, newPassword, callback)', function(){
+      it('should not change the password of the user if the given current password is not correct',function(done){
+        withTransaction(connection,function(connection){
+          var newPassword = "qsdfgh";
+          services.changePassword(user.id,'poney',newPassword,function(err){
+            err.should.be.eql("pas d'écriture dans la base de données");
+            done();
+          })(null,connection);
+        });
+      });
+      it('should change the password of the user',function(done){
+        withTransaction(connection,function(connection){
+          var newPassword = "qsdfgh";
+          services.changePassword(user.id,user.password,newPassword,function(err){
+            (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+            (newPassword.should.not.be.eql(user.password));//pour vérifier que je n'ai pas remis le même par hasard.
+            user.oldPassword = user.password;
+            user.password = newPassword;
+            done();
+          })(null,connection);
+        });
+      });
+      it('should not connect to the user with the old password',function(done){
+        withTransaction(connection,function(connection){
+          services.doLogin(user.login,user.oldPassword,function(err,id){
+            err.should.be.eql("forbiden");
+            (id === null).should.be.true;//il ne doit pas y avoir d'id retourné
+            done();
+          })(null,connection);
+        });
+      });
+      it('should connect to the user with the new password',function(done){
+        withTransaction(connection,function(connection){
+          services.doLogin(user.login,user.password,function(err,id){
+            (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+            id.should.be.eql(user.id);
+            done();
+          })(null,connection);
+        });
+      });
+    });
 
   describe('getUserInfo(userId, callback)', function(){
 
