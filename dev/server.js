@@ -147,8 +147,27 @@ app.get("/users/:login/:password",function(req,res){
 	}));
 });
 
-app.post("/users/:login/:password",function(req,res){
-	//TODO pour le changement de mot de passe.
+app.post("/users/changePassword",function(req,res){
+	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page, parceque !
+		var oldPassword = req.params.password;
+		var newPassword = req.body.name;
+		var userId = req.session.user_id;
+		try {
+			check(oldPassword).len(3,64);
+			check(newPassword).len(3,64);
+		} catch (e){
+			kutils.badRequest(res);
+			return;
+		}
+		pool.getConnection(services.changePassword(userId, oldPassword, newPassword, function(err,connection){
+			if(kutils.checkError(err,res)){
+				kutils.ok(res);
+			}
+			connection.release();
+		}));
+	}else{
+		kutils.forbiden(res);
+	}
 });
 
 

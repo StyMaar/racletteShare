@@ -71,7 +71,6 @@ exports.resetPassword = function resetPassword(email, callback){
 };
 
 //Pour changer le mot de passe manuellement.
-//TODO écrire une façade dans l'API REST pour cette fonction.
 exports.changePassword = function changePassword(userId, oldPassword, newPassword, callback){
 	return function(err,connection){
 		//on s'assure que l'appel d'une connection dans le pool se passe bien.
