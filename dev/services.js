@@ -44,8 +44,7 @@ exports.createUser = function createUser(user, callback){
 			callback(err,null,connection);
 			return;
 		}
-		connection.query('INSERT INTO user (id, login, name, password ,city, tel) \
-		VALUES (?,?,?,SHA2(?, 224),?,?)', [id, user.login, user.name, user.password, user.city, user.tel], function(err, results) {
+		connection.query('INSERT INTO user (id, login, name, password ,city, tel) VALUES (?,?,?,SHA2(?, 224),?,?)', [id, user.login, user.name, user.password, user.city, user.tel], function(err, results) {
 
 			err = kutils.checkUpdateErr(err,results);
 			callback(err,id,connection);
@@ -185,19 +184,19 @@ exports.savePictures = function savePictures(uploadPath,itemId,getPicturePathFro
 
 	async.parallel([
 		function(async_callback){
-			imagemagick.convert([uploadPath,'-resize', bigDimensions, itemPicPath], function(err, stdout){
+			imagemagick.convert([uploadPath,'-resize', bigDimensions, itemPicPath], function(err){
 				console.log("grosse image crée pour l'item :"+itemId);
 				async_callback(err);
 			});
 		},
 		function(async_callback){
-			imagemagick.convert([uploadPath,'-resize', miniDimensions, itemMiniPicPath], function(err, stdout){
+			imagemagick.convert([uploadPath,'-resize', miniDimensions, itemMiniPicPath], function(err){
 				console.log("mini image crée pour l'item :"+itemId);
 				async_callback(err);
 			});
 		}
 	],
-	function(err, results) {
+	function(err) {
 		deleteFile(uploadPath);
 		callback(err);
 	});
@@ -212,7 +211,7 @@ function deleteFile(path){ //on met deleteFile dans le scope pour que la fonctio
 			console.log('successfully deleted '+ path);
 		}
 	});
-};
+}
 
 exports.deleteFile = deleteFile;
 
@@ -229,8 +228,7 @@ exports.newItem = function newItem(userId, item, callback){
 			callback(err,null,connection);
 			return;
 		}
-		connection.query('INSERT INTO item (id, user_id, name, description, category) \
-		VALUES (?,?,?,?,?)', [id, userId, item.nom_objet, item.description, item.category], function(err, results) {
+		connection.query('INSERT INTO item (id, user_id, name, description, category) VALUES (?,?,?,?,?)', [id, userId, item.nom_objet, item.description, item.category], function(err, results) {
 
 			err = kutils.checkUpdateErr(err,results);
 			callback(err,id,connection);
@@ -350,8 +348,7 @@ exports.newDemande = function newDemande(userId, demande, callback){
 			callback(err,null,connection);
 			return;
 		}
-		connection.query('INSERT INTO demande (id, user_id, name, description, category, date) \
-		VALUES (?,?,?,?,?,NOW())', [id, userId, demande.nom_demande, demande.description, demande.category], function(err, results) {
+		connection.query('INSERT INTO demande (id, user_id, name, description, category, date) VALUES (?,?,?,?,?,NOW())', [id, userId, demande.nom_demande, demande.description, demande.category], function(err, results) {
 
 			err = kutils.checkUpdateErr(err,results);
 			callback(err,id,connection);
@@ -550,8 +547,7 @@ exports.newMessage = function newMessage(itemId, myId, contactId, message, callb
 			callback(err,null,connection);
 			return;
 		}
-		connection.query("INSERT INTO message (item_id, sender_id, content, date, receiver_id ) \
-		SELECT ?, ?, ?, NOW(), ? FROM item WHERE id = ? AND (user_id = ? OR user_id = ?)", [itemId, myId, message, contactId, itemId, myId, contactId] , function(err, results) {
+		connection.query("INSERT INTO message (item_id, sender_id, content, date, receiver_id ) SELECT ?, ?, ?, NOW(), ? FROM item WHERE id = ? AND (user_id = ? OR user_id = ?)", [itemId, myId, message, contactId, itemId, myId, contactId] , function(err, results) {
 			err = kutils.checkUpdateErr(err,results);
 			callback(err,null,connection);
 		});

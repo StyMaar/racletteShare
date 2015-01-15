@@ -1,13 +1,10 @@
 var express = require('express');
-var async = require('async');
 var check = require('validator').check;
 
 var EventEmitter = require('events').EventEmitter;
 
 var RedisStore = require("connect-redis")(express);
 var redis = require("redis").createClient();
-
-var imagemagick = require('imagemagick');
 
 var mySQLparams = require('./mySQLparams');
 
@@ -187,7 +184,7 @@ app.get("/user/:email/",function(req,res){
 		}
 		connection.release();
 	}));
-})
+});
 
 /*================================================
 	Inscription
@@ -313,13 +310,14 @@ app.delete("/items/detail/:itemId",function(req,res){
 
 app.post("/items",function(req,res){
 	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page
+		var photo;
 		try {
-			var photo = req.files.photo;
+			photo = req.files.photo;
 			//ça ne sert à rien d'un point de vue sécurité puisque la sauvegarde a lieu quoi qu'il arrive mais bon ...
 			check(photo.size).isInt();
 			check(photo.path).notNull();
 			if(photo.size>5000000){
-				throw new Exception();//le throw new exception n'est pas là pour lever une véritable exception qui remonte toute la stack, mais juste pour sortir du block try{}catch{} (parce que c'est le fonctionnement du plugin check)
+				throw new Error();//le throw new exception n'est pas là pour lever une véritable exception qui remonte toute la stack, mais juste pour sortir du block try{}catch{} (parce que c'est le fonctionnement du plugin check)
 			}
 			check(photo.headers['content-type']).is(/^image\.*/);
 			check(req.body.nom_objet).len(3,64);
@@ -595,6 +593,11 @@ function longPollResponse(res){
 }
 
 app.get("/waitMessage/:itemId/:contactId",function(req,res){
+	
+	function rmListener(){
+		notifier.removeListener(eventString, evtCb);
+	}
+	
 	if(req.session.user_id){
 		var myId = req.session.user_id;
 		var contactId = req.params.contactId;
@@ -611,9 +614,6 @@ app.get("/waitMessage/:itemId/:contactId",function(req,res){
 
 		notifier.on(eventString, evtCb); //on s'abonne aux notifications concernant cette conversation
 
-		function rmListener(){
-			notifier.removeListener(eventString, evtCb);
-		}
 		res.on('close',rmListener); //lorsque la connexion est rompue, on supprime l'abonnement.
 		res.on('kend',rmListener); //lorsque la connexion a retournée un resultat, on supprime aussi l'abonnement
 	}else{
@@ -622,15 +622,15 @@ app.get("/waitMessage/:itemId/:contactId",function(req,res){
 });
 
 app.get("/notifs",function(req,res){
+	function rmListener(){
+		notifier.removeListener(eventString, evtCb);
+	}
 	if(req.session.user_id){
 		var myId = req.session.user_id;
 		var eventString = myId;
 		var evtCb = longPollResponse(res);
 
 		notifier.on(eventString, evtCb); //on s'abonne aux notifications concernant mon identifiant
-		function rmListener(){
-			notifier.removeListener(eventString, evtCb);
-		}
 		res.on('close',rmListener); //lorsque la connexion est rompue, on supprime l'abonnement.
 		res.on('kend',rmListener); //lorsque la connexion a retournée un resultat, on supprime aussi l'abonnement
 	}else{
@@ -734,4 +734,4 @@ app.get("/unread",function(req,res){
 var usedPort = process.argv[2]||7777; //si jamais un numéro de port est passé en paramètre à l'execution du script node, alors on utilisera ce port là, sinon on utilise le port 7777 par défaut
 app.listen(usedPort);
 console.log("Serveur à l'écoute sur le port "+usedPort);
-console.log("Penser à lancer redis-server !!!")
+console.log("Penser à lancer redis-server !!!");

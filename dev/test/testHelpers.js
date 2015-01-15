@@ -2,6 +2,9 @@
 fichier contenant des utilitaires pour les tests.
 */
 
+// pour que jshint ne rale pas avec les `should.be.true`
+//jshint -W030
+
 var services = require('../services.js');
 var EventEmitter = require('events').EventEmitter;
 

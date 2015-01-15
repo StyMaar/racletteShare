@@ -7,19 +7,19 @@ var kutils = {};
 
 kutils.notFound = function(res){
 	res.send(404);
-}
+};
 
 kutils.badRequest = function(res){
 	res.send(400);
-}
+};
 
 kutils.forbiden = function(res){
 	res.send(401,"vous n'avez pas la permission d'accéder à cette interface");
-}
+};
 
 kutils.error = function(res,err){
 	res.send(500,err);
-}
+};
 // fonction qui sert à évaluer les erreurs
 // return true s'il n'y a pas d'erreur
 // mais s'il y a une erreur, elle envoie une réponse http avec le bon code d'erreur et retourne false
@@ -49,21 +49,21 @@ kutils.checkError = function(err,res){
 		break;
 	}
 	return !err;
-}
+};
 
 kutils.ok = function(res){
 	res.send(200);
-}
+};
 kutils.created = function(res){
 	res.send(201);
-}
+};
 
 //retourne un uuid sous forme de string
 kutils.uuid = function(){
 	var buff = new Buffer(32);
 	uuid(null,buff);
 	return uuid.unparse(buff);
-}
+};
 
 /* Pour contrôler les écritures en base :
 on vérifie si une erreur est retournée par le SGBD,
@@ -71,10 +71,10 @@ puis, s'il n'y en a pas : vérifie que quelque chose a été écrit
 si ce n'est pas le cas on retourne une erreur : "pas d'écriture dans la base de données"
 */
 kutils.checkUpdateErr = function (err,results){
-	if(!err && (!results || (results && results.affectedRows == 0))){
+	if(!err && (!results || !results.affectedRows)){
 		err = "pas d'écriture dans la base de données";
 	}
 	return err;
-}
+};
 
 module.exports = kutils;

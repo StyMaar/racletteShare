@@ -3,6 +3,9 @@
 */
 
 
+// pour que jshint ne râle pas avec les `should.be.true`
+//jshint -W030
+
 var services = require('../services.js');
 var mysql = require('mysql');
 var EventEmitter = require('events').EventEmitter;
@@ -267,7 +270,7 @@ describe('Objets',function(){
   describe('getItemByCategory(category, callback)', function(){
     it('should get a list of items selected by its category',function(done){
       withTransaction(connection,function(connection){
-        helper.withUserCreated(connection,function(user){
+        helper.withUserCreated(connection,function(){
           services.getItemByCategory(item.category, function(err,rows){
             (err === null).should.be.true;//il ne doit pas y avoir d'erreur
             rows.length.should.be.eql(1);
@@ -280,7 +283,7 @@ describe('Objets',function(){
     });
     it('should get an empty list selected from an empty category',function(done){
       withTransaction(connection,function(connection){
-        helper.withUserCreated(connection,function(user){
+        helper.withUserCreated(connection,function(){
           services.getItemByCategory(4, function(err,rows){
             err.should.be.eql("notFound");
             rows.length.should.be.eql(0);
@@ -306,7 +309,7 @@ describe('Objets',function(){
     }*/);
     it('should get an empty list selected from a non-existing name',function(done){
       withTransaction(connection,function(connection){
-        helper.withUserCreated(connection,function(user){
+        helper.withUserCreated(connection,function(){
           services.getItemByName("caribou", function(err,rows){
             err.should.be.eql("notFound");
             rows.length.should.be.eql(0);
@@ -346,7 +349,7 @@ describe('Objets',function(){
     });
   });
   rollbackTransaction(connection);
-})
+});
 
 describe('Demandes',function(){
   var demande = {
@@ -411,7 +414,7 @@ describe('Demandes',function(){
   describe('getDemandeByCategory(category, callback)', function(){
     it('should get a list of demandes selected by their category',function(done){
       withTransaction(connection,function(connection){
-        helper.withUserCreated(connection,function(user){
+        helper.withUserCreated(connection,function(){
           services.getDemandeByCategory(demande.category, function(err,rows){
             (err === null).should.be.true;//il ne doit pas y avoir d'erreur
             rows.length.should.be.eql(1);
@@ -424,7 +427,7 @@ describe('Demandes',function(){
     });
     it('should get an empty list selected from an empty category',function(done){
       withTransaction(connection,function(connection){
-        helper.withUserCreated(connection,function(user){
+        helper.withUserCreated(connection,function(){
           services.getDemandeByCategory(4, function(err,rows){
             err.should.be.eql("notFound");
             rows.length.should.be.eql(0);
@@ -450,7 +453,7 @@ describe('Demandes',function(){
     }*/);
     it('should get an empty list selected from a non-existing name',function(done){
       withTransaction(connection,function(connection){
-        helper.withUserCreated(connection,function(user){
+        helper.withUserCreated(connection,function(){
           services.getDemandeByName("caribou", function(err,rows){
             err.should.be.eql("notFound");
             rows.length.should.be.eql(0);
@@ -490,7 +493,7 @@ describe('Demandes',function(){
     });
   });
   rollbackTransaction(connection);
-})
+});
 
 describe('Conversation',function(){
   var message = "coucou, comment ça va ?";
