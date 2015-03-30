@@ -188,7 +188,7 @@ angular.module('controllers', ['racletteModules']).
 				}
 				if(!formValidation.checkLength($scope.nom_objet)){
 					$scope.hiddenMessage = false;
-					$scope.errorMessages.push("le nom de l'objet ne doit pas excéder 64 caractères de long.");
+					$scope.errorMessages.push("le nom de l'objet dois être compris entre 3 et 64 caractères de long.");
 					isItOk = false;
 				}
 				if(isItOk){
@@ -287,7 +287,7 @@ angular.module('controllers', ['racletteModules']).
 				}
 				if(!formValidation.checkLength($scope.nom_objet)){
 					$scope.hiddenMessage = false;
-					$scope.errorMessages.push("le nom de l'objet ne doit pas excéder 64 caractères de long.");
+					$scope.errorMessages.push("le nom de l'objet dois être compris entre 3 et 64 caractères de long.");
 					isItOk = false;
 				}
 				if(isItOk){
