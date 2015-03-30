@@ -1,8 +1,9 @@
 #Dependencies:
 
+##mySQL
 RacletteShare needs mySQL 5.6 . If you're on Linux it might not be the default version of your distribution, so you'll have to install it specifically. For Debian based distributions : `sudo apt-get install mysql-server-5.6` 
 
-##Database creation :
+###Database creation :
 
 ```
 $ mysql -u root
@@ -16,3 +17,6 @@ mysql> GRANT SELECT,INSERT,UPDATE,DELETE,CREATE ON rs_db.* TO 'rs_user'@'localho
 ```
 $ mysql -u rs_user rs_db < raclette.sql 
 ```
+
+##Redis
+RacletteShare uses Redis for storing user session informations.
