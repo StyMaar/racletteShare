@@ -77,4 +77,60 @@ kutils.checkUpdateErr = function (err,results){
 	return err;
 };
 
+kutils.dbSelectOneLine = function(query, args, callback){
+	return function(err,connection){
+		//on s'assure que l'appel d'une connection dans le pool se passe bien.
+		if(err){
+			callback(err,null,connection);
+			return;
+		}
+		connection.query(query, args, function(err, rows) {
+			
+			var result = null;
+			if(!err){
+				if(rows && rows.length !== 0){
+					result = rows[0];
+				}else{
+					err = "notFound";
+				}
+			}
+			callback(err, result, connection);
+		});
+	};
+}
+
+kutils.dbSelectList = function(query, args, callback){
+	return function(err,connection){
+		//on s'assure que l'appel d'une connection dans le pool se passe bien.
+		if(err){
+			callback(err,null,connection);
+			return;
+		}
+		connection.query(query, args, function(err, rows) {
+			
+			if(!err){
+				if(!rows || rows.length===0){
+					err = "notFound";
+				}
+			}
+			callback(err,rows,connection);
+		});
+	};
+}
+
+kutils.dbUpdate = function(query, args, callback){
+	return function(err,connection){
+		if(err){
+			callback(err,null,connection);
+			return;
+		}
+		connection.query(query, args , function(err, results) {
+			
+			err = kutils.checkUpdateErr(err,results);
+			callback(err,null,connection);
+		});
+	};	
+}
+
+
 module.exports = kutils;
