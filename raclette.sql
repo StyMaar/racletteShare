@@ -105,28 +105,6 @@ CREATE TABLE IF NOT EXISTS `demande` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `comments`
---
-
-CREATE TABLE IF NOT EXISTS `comments` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `uuid` varchar(36) NOT NULL,
-  `date` date NOT NULL,
-  `sender_uuid` varchar(36) NOT NULL,
-  `target_uuid` varchar(36) NOT NULL,
-  `grade` int(11) NOT NULL,
-  `comment` varchar(140) NOT NULL,
-  `item_uuid` varchar(36) NOT NULL,
-  PRIMARY KEY (`id`),
-  FOREIGN KEY `target` (`target_uuid`) REFERENCES user(id)
-                     ON DELETE CASCADE,
-  FOREIGN KEY `sender` (`sender_uuid`) REFERENCES user(id)
-                     ON DELETE CASCADE,
-  FOREIGN KEY `object_ID` (`item_uuid`) REFERENCES item(id)
-                     ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
-
---
 -- Table structure for table `message`
 --
 
