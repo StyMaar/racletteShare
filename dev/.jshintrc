@@ -12,5 +12,6 @@
     "browser":true,
     "browserify":true,
     "mocha":true,
-    "devel":true
+    "devel":true,
+    "predef": ["angular"]
 }
