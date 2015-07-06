@@ -146,8 +146,8 @@ app.get("/users/:login/:password",function(req,res){
 
 app.post("/users/changePassword",function(req,res){
 	if(req.session.user_id){//on a besoin d'être authentifié pour voir cette page, parceque !
-		var oldPassword = req.params.password;
-		var newPassword = req.body.name;
+		var oldPassword = req.body.oldPassword;
+		var newPassword = req.body.newPassword;
 		var userId = req.session.user_id;
 		try {
 			check(oldPassword).len(3,64);
