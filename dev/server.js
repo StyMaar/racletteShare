@@ -485,20 +485,19 @@ app.get("/messages/:itemId/:contactId",function(req,res){
 			kutils.badRequest(res);
 			return;
 		}
-		// FIXME : voir comment je fais le pool.getConnection( ici ???
-		// sachant qu'en supprimant le async je l'ai déjà pété de toute façon
-		// TODO : comprendre ce que j'ai fabriqué ici, (et surtout, voir c'est quoi le problème)
 		pool.getConnection(function(err,connexion){
 			services.getConversationDetail(itemId,contactId,function(err,convResult){
 				services.getMessagesList(itemId,contactId,req.session.user_id,function(err,msgListResult){
-						if(kutils.checkError(err,res)){
-							var convDetails = convResult;
-							//markAsRead(req.session.user_id,contactId,itemId);
-							convDetails.messages_list= msgListResult;
-							res.contentType('application/json');
-							console.log(convDetails);
-							res.send(JSON.stringify(convDetails));
-						}
+					if(err && err !== "notFound"){
+						kutils.error(res,err);
+					}else{
+						var convDetails = convResult;
+						markAsRead(req.session.user_id,contactId,itemId);
+						convDetails.messages_list= msgListResult;
+						res.contentType('application/json');
+						console.log(convDetails);
+						res.send(JSON.stringify(convDetails));
+					}
 				})(err, connexion);
 			})(err,connexion);
 		});
