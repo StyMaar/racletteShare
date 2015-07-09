@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('racletteModules', [])
+angular.module('racletteModules')
 	.factory('NotifManager',['$http',function($http){
 		var NM = function(scope){
 			//au chargement de la page, on regarde le nombre de messages non lus

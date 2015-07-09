@@ -2,7 +2,7 @@
 
 /* Controllers */
 
-angular.module('controllers', ['racletteModules']).
+angular.module('controllers').
 	controller('mon_profilCtrl', ['$scope','$http','LoginManager','NotifManager', function($scope,$http,LoginManager,NotifManager) {
 		LoginManager.checkLogin(function(){
 			NotifManager($scope);

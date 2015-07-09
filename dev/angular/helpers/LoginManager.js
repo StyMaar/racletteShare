@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('racletteModules', [])
+angular.module('racletteModules')
 	.factory('LoginManager',['$window','$http','$location',function($window,$http,$location){
 		var LM = {}
 		//une vérification assynchrone pour savoir si l'utilisateur est déjà logé ou non

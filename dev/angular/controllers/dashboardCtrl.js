@@ -2,7 +2,7 @@
 
 /* Controllers */
 
-angular.module('controllers', ['racletteModules']).
+angular.module('controllers').
 	controller('dashboardCtrl', ['$scope','$http','LoginManager','NotifManager','CategoryManager', function($scope, $http, LoginManager, NotifManager, CategoryManager) {
 		$scope.connected = false;
 		LoginManager.checkLogin(function(){

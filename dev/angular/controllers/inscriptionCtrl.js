@@ -2,7 +2,7 @@
 
 /* Controllers */
 
-angular.module('controllers', ['racletteModules']).
+angular.module('controllers').
 	controller('inscriptionCtrl', ['$scope','$http','$location',"formValidation",'LoginManager', function($scope,$http,$location,formValidation,LoginManager) {
 		$scope.hiddenMessage = true;
 		$scope.errorMessages = [];

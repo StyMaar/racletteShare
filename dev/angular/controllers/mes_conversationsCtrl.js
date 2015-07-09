@@ -2,7 +2,7 @@
 
 /* Controllers */
 
-angular.module('controllers', ['racletteModules']).
+angular.module('controllers').
 	controller('mes_conversationsCtrl', ['$scope','$http','$routeParams','LoginManager','$location','$timeout', function($scope,$http,$routeParams,LoginManager,$location,$timeout) {
 		$scope.hiddenMessage = true;
 		$scope.errorMessage = "";

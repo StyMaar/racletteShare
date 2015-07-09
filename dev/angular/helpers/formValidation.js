@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('racletteModules', [])
+angular.module('racletteModules')
 	.factory('formValidation',function(){
 		var fV = {};
 		var mailReg = /[^@]*@[^@]*\.[a-zA-Z]{2,4}$/;

@@ -2,7 +2,7 @@
 
 /* Controllers */
 
-angular.module('controllers', ['racletteModules']).
+angular.module('controllers').
 	controller('nouvel_objetCtrl', ['$scope','$http','$location','$window','LoginManager','NotifManager','formValidation','CategoryManager', function($scope, $http, $location, $window, LoginManager, NotifManager, formValidation, CategoryManager) {
 		$scope.hiddenMessage = true;
 		$scope.errorMessages = [];

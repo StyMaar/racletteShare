@@ -2,7 +2,7 @@
 
 /* Controllers */
 
-angular.module('controllers', ['racletteModules']).
+angular.module('controllers').
 	controller('recherche_nomCtrl', ['$scope','$http','$routeParams','$timeout','LoginManager','NotifManager', function($scope,$http,$routeParams,$timeout, LoginManager, NotifManager) {
 		LoginManager.checkLogin(function(){
 			NotifManager($scope);
