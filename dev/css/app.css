@@ -351,6 +351,14 @@ article:last-child{
 }
 
 /*
+	spécificités de la page reset
+*/
+
+#reset_password #success h4{
+	text-align:center;
+}
+
+/*
 	spécificité de la page de dashboard
 */
 

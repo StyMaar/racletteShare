@@ -168,7 +168,7 @@ app.post("/users/changePassword",function(req,res){
 });
 
 
-app.get("/user/:email/",function(req,res){
+app.get("/user/:email",function(req,res){
 	var email = req.params.email;
 	try {
 		check(email).len(6, 64).isEmail();

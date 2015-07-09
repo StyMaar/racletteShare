@@ -5,6 +5,7 @@
 angular.module('racletteShare', ['controllers','Filtres']).
   config(['$routeProvider', function($routeProvider) {
     $routeProvider.when('/connexion', {templateUrl: 'angular/templates/connexion.html', controller: 'connexionCtrl'});
+    $routeProvider.when('/reset', {templateUrl: 'angular/templates/reset_password.html', controller: 'resetPasswordCtrl'});
     $routeProvider.when('/inscription', {templateUrl: 'angular/templates/inscription.html', controller: 'inscriptionCtrl'});
     $routeProvider.when('/', {templateUrl: 'angular/templates/dashboard.html', controller: 'dashboardCtrl'});
     $routeProvider.when('/users/my', {templateUrl: 'angular/templates/mon_profil.html', controller: 'mon_profilCtrl'});
