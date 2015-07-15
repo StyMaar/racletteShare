@@ -23,7 +23,7 @@ angular.module('controllers').
 			}
 			$scope.request = true;
 			$scope.success = false;
-			$http.get('user/'+$scope.login);//on n'attend pas la réponse du serveur avant d'afficher le message de succès
+			$http.get('users/'+$scope.login);//on n'attend pas la réponse du serveur avant d'afficher le message de succès
 			
 		};
 	}]);
