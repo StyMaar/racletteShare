@@ -160,7 +160,6 @@ app.post("/users/changePassword",function(req,res){
 			if(kutils.checkError(err,res)){
 				kutils.ok(res);
 			}
-			connection.release();
 		}));
 	}else{
 		kutils.forbiden(res);
