@@ -2,6 +2,9 @@
   "name": "RacletteShare",
   "description": "version de dev de racletteShare",
   "version": "0.0.1",
+  "scripts": {
+    "test":"mocha"
+  },
   "dependencies": {
     "async": "0.2.9",
     "connect-redis": "1.4.5",
