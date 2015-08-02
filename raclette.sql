@@ -110,7 +110,8 @@ CREATE TABLE IF NOT EXISTS `demande` (
 
 CREATE TABLE IF NOT EXISTS `message` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
-  `item_id` varchar(36) NOT NULL,
+  `item_id` varchar(36),
+  `demande_id` varchar(36),
   `sender_id` varchar(36) NOT NULL,
   `content` varchar(255) DEFAULT NULL,
   `date` datetime NOT NULL,
@@ -121,6 +122,8 @@ CREATE TABLE IF NOT EXISTS `message` (
   FOREIGN KEY `receiver_ID` (`receiver_id`) REFERENCES user(id)
                     ON DELETE CASCADE,
   FOREIGN KEY `object_ID` (`item_id`) REFERENCES item(id)
+                     ON DELETE CASCADE,
+  FOREIGN KEY `demande_ID` (`demande_id`) REFERENCES demande(id)
                      ON DELETE CASCADE
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=58 ;
 

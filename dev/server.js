@@ -518,7 +518,7 @@ app.post("/messages/:itemId/:contactId",function(req,res){
 			kutils.badRequest(res);
 			return;
 		}
-		pool.getConnection(services.newMessage(itemId, req.session.user_id, contactId, req.body.message,function(err,results,connection){
+		pool.getConnection(services.newMessageFromItem(itemId, req.session.user_id, contactId, req.body.message,function(err,results,connection){
 			if(kutils.checkError(err,res)){
 				var eventString = contactId+req.session.user_id+itemId;
 				var msg = {

@@ -251,42 +251,53 @@ exports.getDemandeDetail = function getDemandeDetail(demandeId, userId, callback
 	return kutils.dbSelectOneLine("SELECT if( demande.user_id = ?, 'mine', '' ) as is_mine, demande.name as name, demande.description as description, category.label as category_label, category.id as category_id, user.name as owner_name, demande.user_id as owner_id FROM demande INNER JOIN user ON demande.user_id=user.id INNER JOIN category ON category.id=demande.category WHERE demande.id= ?", [userId, demandeId], callback);
 };
 
-exports.getConversationDetail = function getConversationDetail(itemId, contactId, callback){
+//where postId can be an itemId or a demandeId
+exports.getConversationDetail = function getConversationDetail(postId, contactId, callback){
 	return kutils.dbSelectOneLine("SELECT * \
 	FROM (\
 		SELECT name AS nom_contact\
 		FROM user\
 		WHERE id = ?\
 	)A, (\
-		SELECT name AS nom_objet\
-		FROM item\
-		WHERE id = ?\
-	)B", [contactId,itemId], callback);
+			SELECT name AS nom_objet\
+			FROM item\
+			WHERE id = ?\
+		UNION \
+			SELECT name AS nom_demande\
+			FROM demande\
+			WHERE id = ?\
+	)B", [contactId, postId, postId], callback);
 };
 
-exports.getMessagesList = function getMessagesList(itemId,contactId,myId, callback){
+//where postId can be an itemId or a demandeId
+exports.getMessagesList = function getMessagesList(postId, contactId,myId, callback){
 	return kutils.dbSelectList("SELECT message.date, \
 							message.content, \
 							IF(message.sender_id = ?,'me','other') AS sender \
 						FROM \
 							message \
-						WHERE message.item_id = ? \
+						WHERE message.item_id = ? OR message.demande_id = ?\
 							AND ( \
 							(message.sender_id = ? AND message.receiver_id = ?) OR (message.sender_id = ? AND message.receiver_id = ?) \
 							) \
-						ORDER BY message.date; ", [myId,itemId,myId,contactId,contactId,myId], callback);
+						ORDER BY message.date; ", [myId, postId, postId, myId, contactId, contactId, myId], callback);
 };
 
-exports.newMessage = function newMessage(itemId, myId, contactId, message, callback){
+exports.newMessageFromItem = function newMessageFromItem(itemId, myId, contactId, message, callback){
 	return kutils.dbUpdate("INSERT INTO message (item_id, sender_id, content, date, receiver_id ) SELECT ?, ?, ?, NOW(), ? FROM item WHERE id = ? AND (user_id = ? OR user_id = ?)", [itemId, myId, message, contactId, itemId, myId, contactId] ,callback);
 };
 
+exports.newMessageFromDemande = function newMessageFromDemande(demandeId, myId, contactId, message, callback){
+	return kutils.dbUpdate("INSERT INTO message (demande_id, sender_id, content, date, receiver_id ) SELECT ?, ?, ?, NOW(), ? FROM demande WHERE id = ? AND (user_id = ? OR user_id = ?)", [demandeId, myId, message, contactId, demandeId, myId, contactId] ,callback);
+};
+
 exports.getConversationsList = function getConversationsList(myId, callback){
-	return kutils.dbSelectList("SELECT DISTINCT user.id AS contact_id, user.name AS nom_contact, item.id AS item_id, item.name AS nom_objet \
+	return kutils.dbSelectList("SELECT DISTINCT user.id AS contact_id, user.name AS nom_contact, item.id AS item_id, item.name AS nom_objet, demande.id AS demande_id, demande.name AS nom_demande\
 						FROM (\
-							SELECT item_id, IF( message.sender_id = ?, message.receiver_id, IF( message.receiver_id = ?, message.sender_id, NULL ) ) AS contact_id \
+							SELECT item_id, demande_id, IF( message.sender_id = ?, message.receiver_id, IF( message.receiver_id = ?, message.sender_id, NULL ) ) AS contact_id \
 							FROM message \
 						)A \
 						INNER JOIN user ON A.contact_id = user.id\
-						INNER JOIN item ON A.item_id = item.id", [myId,myId], callback);
+						LEFT JOIN item ON A.item_id = item.id \
+						LEFT JOIN demande ON A.demande_id = demande.id", [myId,myId], callback);
 };

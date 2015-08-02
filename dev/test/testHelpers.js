@@ -80,3 +80,37 @@ exports.withItemCreated = function(connection, callback){
     }
   });
 };
+/**
+Crée un item de test et effectue l'action callback lorsqu'il est créé. S'il est déjà créé, on effectue directement le callback.
+callback = f(user,item)
+*/
+exports.withDemandeCreated = function(connection, callback){
+  exports.withUserCreated(connection,function(user){
+    if(connection.demandeCreated){
+      callback(user,connection.demandeCreated);
+    }else{
+      var emitter = new EventEmitter();
+      emitter.once('ready', function(){
+        callback(user,connection.demandeCreated);
+      });
+
+      var demande = {
+        nom_demande:"Kalachnikov",
+        description:"AK-47 Kalachnikov, un fusil d'assaut robuste et efficace",
+        category:3
+      };
+      services.newDemande(user.id, demande, function(err,id){
+        (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+        (id === null).should.be.false;//il doit bien y avoir un id retourné
+        demande.id=id;
+        connection.demandeCreated=demande;
+        connection.parasite=connection.parasite||[];//on crée un objet qui va lister toutes les propriétés qu'on ajoute à une connexion pour y stocker des choses. Ces propriétés devront être supprimées lors du roolback de la transaction.
+        connection.parasite.push("demandeCreated");
+        if(err){
+          throw err;
+        }
+        emitter.emit('ready');
+      })(null,connection);
+    }
+  });
+};

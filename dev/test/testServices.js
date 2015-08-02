@@ -496,13 +496,28 @@ describe('Demandes',function(){
 });
 
 describe('Conversation',function(){
-  var message = "coucou, comment ça va ?";
-  describe('newMessage(itemId, myId, contactId, message, callback)', function(){
+  var messageItem = "coucou, comment ça va ?";
+  var messageDemande = "coucou, ça va bien ?";
+  describe('newMessageFromItem(itemId, myId, contactId, message, callback)', function(){
     it('should send a new message to someone',function(done){
       withTransaction(connection,function(connection){
         helper.withUserCreated(connection,function(destinataire){
           helper.withItemCreated(connection,function(sender,item){
-            services.newMessage(item.id, sender.id, destinataire.id, message, function(err){
+            services.newMessageFromItem(item.id, sender.id, destinataire.id, messageItem, function(err){
+              (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+              done();
+            })(null,connection);
+          });
+        },"destinataire");
+      });
+    });
+  });
+  describe('newMessageFromDemande(demandeId, myId, contactId, message, callback)', function(){
+    it('should send a new message to someone',function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(destinataire){
+          helper.withDemandeCreated(connection,function(sender,demande){
+            services.newMessageFromDemande(demande.id, sender.id, destinataire.id, messageDemande, function(err){
               (err === null).should.be.true;//il ne doit pas y avoir d'erreur
               done();
             })(null,connection);
@@ -512,15 +527,31 @@ describe('Conversation',function(){
     });
   });
   describe('getMessagesList(itemId,contactId,myId, callback)', function(){
-    it('should get a list of message with only one message in it',function(done){
+    it('should get a list of message about an item with only one message in it',function(done){
       withTransaction(connection,function(connection){
         helper.withUserCreated(connection,function(destinataire){
-          helper.withItemCreated(connection,function(sender,item){
+          helper.withItemCreated(connection,function(sender, item){
             services.getMessagesList(item.id,destinataire.id,sender.id, function(err,msgList){
               (err === null).should.be.true;//il ne doit pas y avoir d'erreur
               msgList.length.should.be.eql(1);
               msgList[0].sender.should.be.eql("me");
-              msgList[0].content.should.be.eql(message);
+              msgList[0].content.should.be.eql(messageItem);
+              (msgList[0].date === null).should.be.false;
+              done();
+            })(null,connection);
+          });
+        },"destinataire");
+      });
+    });
+    it('should get a list of message about a demande with only one message in it',function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(destinataire){
+          helper.withDemandeCreated(connection,function(sender, demande){
+            services.getMessagesList(demande.id,destinataire.id,sender.id, function(err,msgList){
+              (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+              msgList.length.should.be.eql(1);
+              msgList[0].sender.should.be.eql("me");
+              msgList[0].content.should.be.eql(messageDemande);
               (msgList[0].date === null).should.be.false;
               done();
             })(null,connection);
@@ -530,26 +561,32 @@ describe('Conversation',function(){
     });
   });
   describe('getConversationsList(myId, callback)', function(){
-    it('should get a list of conversation with only one conversation in it',function(done){
+    it('should get a list of conversation with two conversation in it',function(done){
       withTransaction(connection,function(connection){
         helper.withUserCreated(connection,function(destinataire){
           helper.withItemCreated(connection,function(sender,item){
-            services.getConversationsList(sender.id, function(err,convList){
-              (err === null).should.be.true;//il ne doit pas y avoir d'erreur
-              convList.length.should.be.eql(1);
-              convList[0].contact_id.should.be.eql(destinataire.id);
-              convList[0].nom_contact.should.be.eql(destinataire.name);
-              convList[0].item_id.should.be.eql(item.id);
-              convList[0].nom_objet.should.be.eql(item.nom_objet);
-              done();
-            })(null,connection);
+            helper.withDemandeCreated(connection,function(sender, demande){
+              services.getConversationsList(sender.id, function(err,convList){
+                (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+                convList.length.should.be.eql(2);
+                convList[0].contact_id.should.be.eql(destinataire.id);
+                convList[0].nom_contact.should.be.eql(destinataire.name);
+                convList[0].item_id.should.be.eql(item.id);
+                convList[0].nom_objet.should.be.eql(item.nom_objet);
+                convList[1].contact_id.should.be.eql(destinataire.id);
+                convList[1].nom_contact.should.be.eql(destinataire.name);
+                convList[1].demande_id.should.be.eql(demande.id);
+                convList[1].nom_demande.should.be.eql(demande.nom_demande);
+                done();
+              })(null,connection);
+            });
           });
         },"destinataire");
       });
     });
   });
   describe('getConversationDetail(itemId, contactId, callback)', function(){
-    it('should get the details of a conversation',function(done){
+    it('should get the details of a conversation about an item',function(done){
       withTransaction(connection,function(connection){
         helper.withUserCreated(connection,function(destinataire){
           helper.withItemCreated(connection,function(sender,item){
@@ -557,6 +594,21 @@ describe('Conversation',function(){
               (err === null).should.be.true;//il ne doit pas y avoir d'erreur
               convDetails.nom_contact.should.be.eql(destinataire.name);
               convDetails.nom_objet.should.be.eql(item.nom_objet);
+              done();
+            })(null,connection);
+          });
+        },"destinataire");
+      });
+    });
+    it('should get the details of a conversation about a demande',function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(destinataire){
+          helper.withDemandeCreated(connection,function(sender, demande){
+            services.getConversationDetail(demande.id,destinataire.id, function(err,convDetails){
+              console.error(err);
+              (err === null).should.be.true;//il ne doit pas y avoir d'erreur
+              convDetails.nom_contact.should.be.eql(destinataire.name);
+              convDetails.nom_objet.should.be.eql(demande.nom_demande);
               done();
             })(null,connection);
           });
