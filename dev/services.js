@@ -22,7 +22,7 @@ exports.doLogin = function doLogin(email, password, callback){
 			return;
 		}
 		// FIXME : un simple sha2 sans sel ? je pourrais au moins faire la concaténation login + password pour éviter les colisions ...
-		connection.query('SELECT id FROM user WHERE email = ? AND password = SHA2(?, 224)', [email,password], function(err, rows) {
+		connection.query('SELECT id FROM user WHERE email = ? AND password = SHA2(CONCAT(?,?), 224)', [email, email, password], function(err, rows) {
 			var id = null;
 			if(!err){
 				if(rows && rows.length !== 0){
@@ -44,7 +44,7 @@ exports.createUser = function createUser(user, callback){
 			callback(err,null,connection);
 			return;
 		}
-		connection.query('INSERT INTO user (id, email, name, password ,city, tel) VALUES (?,?,?,SHA2(?, 224),?,?)', [id, user.email, user.name, user.password, user.city, user.tel], function(err, results) {
+		connection.query('INSERT INTO user (id, email, name, password ,city, tel) VALUES (?,?,?,SHA2(CONCAT(?,?), 224),?,?)', [id, user.email, user.name, user.email, user.password, user.city, user.tel], function(err, results) {
 
 			err = kutils.checkUpdateErr(err,results);
 			callback(err,id,connection);
@@ -62,7 +62,7 @@ exports.resetPassword = function resetPassword(email, callback){
 			callback(err,null,connection);
 			return;
 		}
-		connection.query('UPDATE user set password=SHA2(?, 224) WHERE email=?', [newPassword, email], function(err, results) {
+		connection.query('UPDATE user set password=SHA2(CONCAT(?,?), 224) WHERE email=?', [email, newPassword, email], function(err, results) {
 			err = kutils.checkUpdateErr(err,results);
 			callback(err, newPassword, connection);
 		});
@@ -71,7 +71,7 @@ exports.resetPassword = function resetPassword(email, callback){
 
 //Pour changer le mot de passe manuellement.
 exports.changePassword = function changePassword(userId, oldPassword, newPassword, callback){
-	return kutils.dbUpdate('UPDATE user set password=SHA2(?, 224) WHERE id=? AND password=SHA2(?, 224)', [newPassword, userId, oldPassword], callback);
+	return kutils.dbUpdate('UPDATE user set password=SHA2(CONCAT(email,?), 224) WHERE id=? AND password=SHA2(CONCAT(email,?), 224)', [newPassword, userId, oldPassword], callback);
 };
 
 
