@@ -206,6 +206,11 @@ app.post("/users",function(req,res){
 	}
 
 	pool.getConnection(services.createUser(req.body,function(err,results,connection){
+		//specific error handling for duplicate entries
+		if(err && err.code && err.code === "ER_DUP_ENTRY"){
+			kutils.error(res,"L'adresse email est déjà utilisée");
+		}
+		
 		if(kutils.checkError(err,res)){
 			req.session.user_id=results;
 			kutils.created(res);

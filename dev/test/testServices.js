@@ -76,6 +76,17 @@ describe('Utilisateurs', function(){
   			})(null,connection);
       });
   	});
+    it('should not be able to create a user with an already used email',function(done){
+      withTransaction(connection,function(connection){
+        helper.withUserCreated(connection,function(user){
+          services.createUser(user,function(err,id){
+            (err instanceof Error).should.be.true;//l'erreur doit être du type Error
+            err.code.should.eql("ER_DUP_ENTRY");
+            done();
+          })(null,connection);
+        });
+      });
+    });
   });
 
   describe('doLogin(login, password, callback)', function(){
