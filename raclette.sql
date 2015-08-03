@@ -59,7 +59,6 @@ CREATE TABLE IF NOT EXISTS `user` (
   `city` varchar(64) DEFAULT NULL,
   `tel` varchar(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `nickname` (`name`),
   UNIQUE KEY `login` (`login`),
   KEY `ville` (`city`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
