@@ -8,12 +8,12 @@ angular.module('controllers').
 		$scope.errorMessages = [];
 		$scope.inscriptionClick = function(){
 			/*
-				On contrôle le login (doit être un email), le mot de passe (3-64 char de long) et le nom d'utilisateur (3-64 char de long)
+				On contrôle l' email, le mot de passe (3-64 char de long) et le nom d'utilisateur (3-64 char de long)
 				La ville et le téléphone sont facultatifs
 			*/
 			$scope.errorMessages = [];
 			var isItOk = true;
-			if(!formValidation.checkLogin($scope.login)){
+			if(!formValidation.checkEmail($scope.email)){
 				$scope.hiddenMessage = false;
 				$scope.errorMessages.push("Votre email doit être un email valide");
 				isItOk = false;
@@ -40,7 +40,7 @@ angular.module('controllers').
 				return;
 			}
 			var postData = {
-				login:$scope.login,
+				email:$scope.email,
 				password:$scope.password,
 				name:$scope.name,
 				city:$scope.ville,

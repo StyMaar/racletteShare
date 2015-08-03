@@ -4,7 +4,7 @@
 
 angular.module('controllers').
 	controller('recherche_categoryCtrl', ['$scope','$http','$routeParams','$timeout','LoginManager','NotifManager','CategoryManager', function($scope,$http,$routeParams,$timeout, LoginManager, NotifManager, CategoryManager) {
-		LoginManager.checkLogin(function(){
+		LoginManager.checkEmail(function(){
 			NotifManager($scope);
 		});
 		$scope.hiddenMessage = true;

@@ -5,7 +5,7 @@
 angular.module('controllers').
 	controller('dashboardCtrl', ['$scope','$http','LoginManager','NotifManager','CategoryManager', function($scope, $http, LoginManager, NotifManager, CategoryManager) {
 		$scope.connected = false;
-		LoginManager.checkLogin(function(){
+		LoginManager.checkEmail(function(){
 			NotifManager($scope);
 			$scope.connected = true;
 			$http.get('users/my').success(function(data) {

@@ -4,11 +4,11 @@ angular.module('racletteModules')
 	.factory('LoginManager',['$window','$http','$location',function($window,$http,$location){
 		var LM = {}
 		//une vérification assynchrone pour savoir si l'utilisateur est déjà logé ou non
-		LM.checkLogin = function(logged,notlogged){
+		LM.checkEmail = function(logged,notlogged){
 			if($window.racletteLogged_in){
 				return logged();
 			}else{
-				$http.get('/checkLogin').success(function(isLogged) {
+				$http.get('/checkEmail').success(function(isLogged) {
 					$window.racletteLogged_in = true;
 					return logged();
 				}).error(function(){

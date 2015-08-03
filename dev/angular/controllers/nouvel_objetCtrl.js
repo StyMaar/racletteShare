@@ -9,7 +9,7 @@ angular.module('controllers').
 		$scope.hiddenWarning = true;
 		$scope.warningMessage = "";
 		$scope.hidePic = true;
-		LoginManager.checkLogin(function(){
+		LoginManager.checkEmail(function(){
 			var isItOk = true;
 			CategoryManager.getCatList(function(catList) {
 				$scope.categories = catList;

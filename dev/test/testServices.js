@@ -57,7 +57,7 @@ var connection = mysql.createConnection(DBconnectionParams);
 
 describe('Utilisateurs', function(){
   var user = {
-    login : "bm",
+    email : "bm",
     name :"Bob Morane",
     password: "azerty",
     city:"Boston",
@@ -89,11 +89,11 @@ describe('Utilisateurs', function(){
     });
   });
 
-  describe('doLogin(login, password, callback)', function(){
+  describe('doLogin(email, password, callback)', function(){
 
     it('should log in with the newly created user',function(done){
       withTransaction(connection,function(connection){
-        services.doLogin(user.login,user.password,function(err,id){
+        services.doLogin(user.email,user.password,function(err,id){
           (err === null).should.be.true;//il ne doit pas y avoir d'erreur
           id.should.be.eql(user.id);
           done();
@@ -114,7 +114,7 @@ describe('Utilisateurs', function(){
     describe('resetPassword(email, callback)', function(){
       it('should reset the password of the user',function(done){
         withTransaction(connection,function(connection){
-          services.resetPassword(user.login,function(err,newPassword){
+          services.resetPassword(user.email,function(err,newPassword){
             (err === null).should.be.true;//il ne doit pas y avoir d'erreur
             (newPassword === null).should.be.false;
             (newPassword.should.not.be.eql(user.password));//le mot de passe doit avoir été changé.
@@ -126,7 +126,7 @@ describe('Utilisateurs', function(){
       });
       it('should not connect to the user with the old password',function(done){
         withTransaction(connection,function(connection){
-          services.doLogin(user.login,user.oldPassword,function(err,id){
+          services.doLogin(user.email,user.oldPassword,function(err,id){
             err.should.be.eql("forbiden");
             (id === null).should.be.true;//il ne doit pas y avoir d'id retourné
             done();
@@ -135,7 +135,7 @@ describe('Utilisateurs', function(){
       });
       it('should connect to the user with the new password',function(done){
         withTransaction(connection,function(connection){
-          services.doLogin(user.login,user.password,function(err,id){
+          services.doLogin(user.email,user.password,function(err,id){
             (err === null).should.be.true;//il ne doit pas y avoir d'erreur
             id.should.be.eql(user.id);
             done();
@@ -168,7 +168,7 @@ describe('Utilisateurs', function(){
       });
       it('should not connect to the user with the old password',function(done){
         withTransaction(connection,function(connection){
-          services.doLogin(user.login,user.oldPassword,function(err,id){
+          services.doLogin(user.email,user.oldPassword,function(err,id){
             err.should.be.eql("forbiden");
             (id === null).should.be.true;//il ne doit pas y avoir d'id retourné
             done();
@@ -177,7 +177,7 @@ describe('Utilisateurs', function(){
       });
       it('should connect to the user with the new password',function(done){
         withTransaction(connection,function(connection){
-          services.doLogin(user.login,user.password,function(err,id){
+          services.doLogin(user.email,user.password,function(err,id){
             (err === null).should.be.true;//il ne doit pas y avoir d'erreur
             id.should.be.eql(user.id);
             done();

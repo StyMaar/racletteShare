@@ -53,13 +53,13 @@ INSERT INTO `category` (`id`, `label`) VALUES
 
 CREATE TABLE IF NOT EXISTS `user` (
   `id` varchar(36) NOT NULL,
-  `login` varchar(64) NOT NULL,
+  `email` varchar(64) NOT NULL,
   `name` varchar(40) NOT NULL,
   `password` char(56) NOT NULL,
   `city` varchar(64) DEFAULT NULL,
   `tel` varchar(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `login` (`login`),
+  UNIQUE KEY `email` (`email`),
   KEY `ville` (`city`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

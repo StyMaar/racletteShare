@@ -6,7 +6,7 @@ angular.module('controllers').
 	controller('mes_objetsCtrl', ['$scope','$http','LoginManager','NotifManager', function($scope,$http,LoginManager,NotifManager) {
 		$scope.hiddenMessage = true;
 		$scope.errorMessage = "";
-		LoginManager.checkLogin(function(){
+		LoginManager.checkEmail(function(){
 			NotifManager($scope);
 			$http.get('items/my').success(function(data) {
 				$scope.item_list=data;

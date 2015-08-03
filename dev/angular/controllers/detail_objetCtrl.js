@@ -4,7 +4,7 @@
 
 angular.module('controllers').
 	controller('detail_objetCtrl', ['$scope','$http','$routeParams','$location','LoginManager','NotifManager', function($scope,$http,$routeParams,$location, LoginManager, NotifManager) {
-		LoginManager.checkLogin(function(){
+		LoginManager.checkEmail(function(){
 			NotifManager($scope);
 		});
 		$scope.hiddenMessage = true;

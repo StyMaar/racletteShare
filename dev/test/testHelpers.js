@@ -29,7 +29,7 @@ exports.withUserCreated = function(connection, callback, userName){
       city:"Courseulles sur Mer",
       tel:"06 21 21 21 21"
     };
-    user.login=userName;
+    user.email=userName;
     user.name +=" "+userName;
     services.createUser(user,function(err,id){
       (err === null).should.be.true;//il ne doit pas y avoir d'erreur

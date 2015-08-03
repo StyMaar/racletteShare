@@ -8,11 +8,11 @@ angular.module('controllers', ['racletteModules']).
 		$scope.errorMessages = [];
 		$scope.connexionClick = function(){
 			/*
-				On contrôle le login (doit être un email), le mot de passe (3-64 char de long)
+				On contrôle l'email (doit être un email), le mot de passe (3-64 char de long)
 			*/
 			$scope.errorMessages = [];
 			var isItOk = true;
-			if(!formValidation.checkLogin($scope.login)){
+			if(!formValidation.checkEmail($scope.email)){
 				$scope.hiddenMessage = false;
 				$scope.errorMessages.push("Votre email doit être un email valide");
 				isItOk = false;
@@ -28,7 +28,7 @@ angular.module('controllers', ['racletteModules']).
 			}else{
 				return;
 			}
-			$http.get('users/'+$scope.login+'/'+$scope.password).success(function() {
+			$http.get('users/'+$scope.email+'/'+$scope.password).success(function() {
 				LoginManager.connect();
 				$location.path("/");
 				$location.replace();

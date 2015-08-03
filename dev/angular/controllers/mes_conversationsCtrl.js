@@ -6,7 +6,7 @@ angular.module('controllers').
 	controller('mes_conversationsCtrl', ['$scope','$http','$routeParams','LoginManager','$location','$timeout', function($scope,$http,$routeParams,LoginManager,$location,$timeout) {
 		$scope.hiddenMessage = true;
 		$scope.errorMessage = "";
-		LoginManager.checkLogin(function(){
+		LoginManager.checkEmail(function(){
 			$http.get('/messages/conversations').success(function(data) {
 				$scope.liste_conversations = data;
 			}).

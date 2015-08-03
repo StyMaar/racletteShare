@@ -8,7 +8,7 @@ angular.module('controllers').
 		$scope.errorMessages = [];
 		$scope.loadingErr="";
 		$scope.itemId = $routeParams.itemId;
-		LoginManager.checkLogin(function(){
+		LoginManager.checkEmail(function(){
 			NotifManager($scope);
 			CategoryManager.getCatList(function(catList) {
 				$scope.categories = catList.map(function(a){

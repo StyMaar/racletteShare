@@ -4,7 +4,7 @@
 
 angular.module('controllers').
 	controller('mon_profilCtrl', ['$scope','$http','LoginManager','NotifManager', function($scope,$http,LoginManager,NotifManager) {
-		LoginManager.checkLogin(function(){
+		LoginManager.checkEmail(function(){
 			NotifManager($scope);
 			$http.get('users/my').success(function(data) {
 				$scope.name = data.name;

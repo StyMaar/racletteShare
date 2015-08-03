@@ -14,7 +14,7 @@ Toutes les fonctions définies dans ce module ont une structure commune :
 pool.getConnection(dologin(param...));
 */
 
-exports.doLogin = function doLogin(login, password, callback){
+exports.doLogin = function doLogin(email, password, callback){
 	return function(err,connection){
 		//on s'assure que l'appel d'une connection dans le pool se passe bien.
 		if(err){
@@ -22,7 +22,7 @@ exports.doLogin = function doLogin(login, password, callback){
 			return;
 		}
 		// FIXME : un simple sha2 sans sel ? je pourrais au moins faire la concaténation login + password pour éviter les colisions ...
-		connection.query('SELECT id FROM user WHERE login = ? AND password = SHA2(?, 224)', [login,password], function(err, rows) {
+		connection.query('SELECT id FROM user WHERE email = ? AND password = SHA2(?, 224)', [email,password], function(err, rows) {
 			var id = null;
 			if(!err){
 				if(rows && rows.length !== 0){
@@ -44,7 +44,7 @@ exports.createUser = function createUser(user, callback){
 			callback(err,null,connection);
 			return;
 		}
-		connection.query('INSERT INTO user (id, login, name, password ,city, tel) VALUES (?,?,?,SHA2(?, 224),?,?)', [id, user.login, user.name, user.password, user.city, user.tel], function(err, results) {
+		connection.query('INSERT INTO user (id, email, name, password ,city, tel) VALUES (?,?,?,SHA2(?, 224),?,?)', [id, user.email, user.name, user.password, user.city, user.tel], function(err, results) {
 
 			err = kutils.checkUpdateErr(err,results);
 			callback(err,id,connection);
@@ -62,7 +62,7 @@ exports.resetPassword = function resetPassword(email, callback){
 			callback(err,null,connection);
 			return;
 		}
-		connection.query('UPDATE user set password=SHA2(?, 224) WHERE login=?', [newPassword, email], function(err, results) {
+		connection.query('UPDATE user set password=SHA2(?, 224) WHERE email=?', [newPassword, email], function(err, results) {
 			err = kutils.checkUpdateErr(err,results);
 			callback(err, newPassword, connection);
 		});

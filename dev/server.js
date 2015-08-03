@@ -116,7 +116,7 @@ function getMiniPicPathFromId(itemId){
 	Connexion
 ===========================================================*/
 
-app.get("/checkLogin",function(req,res){
+app.get("/checkEmail",function(req,res){
 	if(req.session.user_id){
 		kutils.ok(res);
 	}else{
@@ -125,17 +125,17 @@ app.get("/checkLogin",function(req,res){
 });
 
 
-app.get("/users/:login/:password",function(req,res){
-	var login = req.params.login;
+app.get("/users/:email/:password",function(req,res){
+	var email = req.params.email;
 	var password = req.params.password;
 	try {
-		check(login).len(6, 64).isEmail();
+		check(email).len(6, 64).isEmail();
 		check(password).len(3,64);
 	} catch (e){
 		kutils.badRequest(res);
 		return;
 	}
-	pool.getConnection(services.doLogin(login,password,function(err,result,connection){
+	pool.getConnection(services.doLogin(email,password,function(err,result,connection){
 		if(kutils.checkError(err,res)){
 			req.session.user_id=result;
 			kutils.ok(res);
@@ -191,7 +191,7 @@ app.get("/users/:email",function(req,res){
 
 app.post("/users",function(req,res){
 	try {
-		check(req.body.login).len(6, 64).isEmail();
+		check(req.body.email).len(6, 64).isEmail();
 		check(req.body.name).len(3,64);
 		check(req.body.password).len(3,64);
 		if(req.body.city){ //si une ville est renseignée, on s'assure que c'est bien une ville

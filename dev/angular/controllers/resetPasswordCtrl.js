@@ -10,10 +10,10 @@ angular.module('controllers').
 		$scope.success = true;
 		$scope.resetPassword = function(){
 			/*
-				On contrôle le login (doit être un email), le mot de passe (3-64 char de long)
+				On contrôle l'email, le mot de passe (3-64 char de long)
 			*/
 			$scope.errorMessages = [];
-			if(!formValidation.checkLogin($scope.login)){
+			if(!formValidation.checkEmail($scope.email)){
 				$scope.hiddenMessage = false;
 				$scope.errorMessages.push("Votre email doit être un email valide");
 				return;
@@ -23,7 +23,7 @@ angular.module('controllers').
 			}
 			$scope.request = true;
 			$scope.success = false;
-			$http.get('users/'+$scope.login);//on n'attend pas la réponse du serveur avant d'afficher le message de succès
+			$http.get('users/'+$scope.email);//on n'attend pas la réponse du serveur avant d'afficher le message de succès
 			
 		};
 	}]);

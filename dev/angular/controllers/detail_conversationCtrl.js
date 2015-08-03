@@ -25,7 +25,7 @@ angular.module('controllers').
 			});
 		}
 
-		LoginManager.checkLogin(function(){
+		LoginManager.checkEmail(function(){
 			NotifManager($scope);
 			$http.get('/messages/'+$scope.itemId+'/'+$scope.contactId).success(function(data) {
 				$scope.nom_objet = data.nom_objet;
